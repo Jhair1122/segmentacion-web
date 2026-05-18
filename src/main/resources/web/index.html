@@ -92,7 +92,8 @@
         }
         .result-card {
             margin: 0 2rem 1rem; padding: 1.5rem; border-radius: 1.5rem;
-            background: #f9faf9; border-left: 8px solid #2ecc71;
+            background: #f9faf9;
+            border-left: 8px solid #2ecc71;
             text-align: center;
             transition: transform 0.2s;
         }
@@ -338,12 +339,11 @@
     window.addEventListener('resize', () => {
         if (graficoDiv && graficoDiv.data) {
             Plotly.relayout(graficoDiv, { autosize: true });
-            // Forzar redibujado para que se ajuste al contenedor
             Plotly.Plots.resize(graficoDiv);
         }
     });
 
-    // === EJEMPLOS ===
+    // === EJEMPLOS (con valores correctos para selects: 1 = Sí, 0 = No) ===
     // Ejemplo Riesgo Alto (Morosos)
     function cargarEjemploAlto() {
         document.getElementById('tipo').value = "0";
@@ -354,25 +354,25 @@
         document.getElementById('aniosMoroso').value = "5";
         document.getElementById('mesesRetraso').value = "12";
         document.getElementById('numNotificaciones').value = "8";
-        document.getElementById('respondio').value = "false";
-        document.getElementById('fraccion').value = "false";
+        document.getElementById('respondio').value = "0";    // No
+        document.getElementById('fraccion').value = "0";     // No
         document.getElementById('ultimoPago').value = "2018";
         resultadoDiv.innerHTML = "📋 Ejemplo de Alto Riesgo cargado. Presione 'Identificar segmento' para ver el resultado.";
         resultadoDiv.style.borderLeftColor = "#e74c3c";
     }
 
-    // Ejemplo Riesgo Medio (Recuperables)
+    // Ejemplo Riesgo Medio (Recuperables alto monto, cluster 3)
     function cargarEjemploMedio() {
         document.getElementById('tipo').value = "0";
-        document.getElementById('frecuencia').value = "1";
+        document.getElementById('frecuencia').value = "1";   // Con retraso
         document.getElementById('montoImpuesto').value = "3500";
         document.getElementById('montoPagado').value = "1800";
         document.getElementById('deudaAcumulada').value = "2200";
         document.getElementById('aniosMoroso').value = "2";
         document.getElementById('mesesRetraso').value = "4";
         document.getElementById('numNotificaciones').value = "3";
-        document.getElementById('respondio').value = "false";
-        document.getElementById('fraccion').value = "true";
+        document.getElementById('respondio').value = "0";    // No
+        document.getElementById('fraccion').value = "1";     // Sí
         document.getElementById('ultimoPago').value = "2022";
         resultadoDiv.innerHTML = "📋 Ejemplo de Medio Riesgo cargado. Presione 'Identificar segmento' para ver el resultado.";
         resultadoDiv.style.borderLeftColor = "#f1c40f";
@@ -388,8 +388,8 @@
         document.getElementById('aniosMoroso').value = "0";
         document.getElementById('mesesRetraso').value = "0";
         document.getElementById('numNotificaciones').value = "0";
-        document.getElementById('respondio').value = "true";
-        document.getElementById('fraccion').value = "false";
+        document.getElementById('respondio').value = "1";    // Sí
+        document.getElementById('fraccion').value = "0";     // No
         document.getElementById('ultimoPago').value = "2025";
         resultadoDiv.innerHTML = "📋 Ejemplo de Bajo Riesgo cargado. Presione 'Identificar segmento' para ver el resultado.";
         resultadoDiv.style.borderLeftColor = "#2ecc71";
@@ -445,13 +445,17 @@
                     caracteristicas.map(c => `<li style="margin:6px 0;">${c}</li>`).join('') + '</ul>';
             }
 
+            // Color dinámico según el cluster
+            const colorTexto = coloresSemanticos[cluster] || '#1f7a46';
             resultadoDiv.innerHTML = `
-                <h2 style="color:#1f7a46; margin-bottom:8px;">${nombre}</h2>
+                <h2 style="color:${colorTexto}; margin-bottom:8px;">${nombre}</h2>
                 <p style="margin-bottom:8px;">${desc}</p>
                 ${caracHtml}
-                <p><strong>⚡ Acción recomendada:</strong> ${accion}</p>
+                <p><strong style="color:${colorTexto};">⚡ Acción recomendada:</strong> ${accion}</p>
                 <p style="font-size:0.8rem; margin-top:12px;">Cluster #${cluster}</p>
             `;
+            // También cambiar el borde izquierdo según el color
+            resultadoDiv.style.borderLeftColor = colorTexto;
 
             dibujarGrafico(cluster);
         } catch (err) {
