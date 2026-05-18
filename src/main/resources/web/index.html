@@ -402,8 +402,8 @@
             });
         }
 
-        // --- EJEMPLOS (valores ajustados según tus pruebas) ---
-        // Alto Riesgo → Morosos (cluster 0). Valores que dieron Moroso en tu captura (meses 7, deuda 1000, etc.)
+        // --- EJEMPLOS: valores invertidos entre Alto y Medio Riesgo ---
+        // Alto Riesgo usará los valores que antes daban Recuperable (cluster 1)
         function cargarEjemploAlto() {
             const valores = {
                 tipoContribuyente: 0,
@@ -412,7 +412,7 @@
                 montoPagado: 0,
                 deudaAcumulada: 1000,
                 aniosMoroso: 5,
-                mesesRetrasoPromedio: 7,    // ← 7 meses → Moroso
+                mesesRetrasoPromedio: 8,    // ← 8 meses → Recuperable (inversión)
                 numNotificaciones: 4,
                 respondioNotificacion: 0,
                 fraccionamiento: 0,
@@ -429,11 +429,11 @@
             document.getElementById('respondio').value = valores.respondioNotificacion;
             document.getElementById('fraccion').value = valores.fraccionamiento;
             document.getElementById('ultimoPago').value = valores.ultimoPago;
-            resultadoDiv.innerHTML = "📋 Ejemplo de Alto Riesgo (Morosos) cargado. Presione 'Identificar segmento'.";
+            resultadoDiv.innerHTML = "📋 Ejemplo de Alto Riesgo cargado. Presione 'Identificar segmento'.";
             resultadoDiv.style.borderLeftColor = "#e74c3c";
         }
 
-        // Medio Riesgo → Recuperables (cluster 1). Valores que dieron Recuperable (meses 8, mismo resto)
+        // Medio Riesgo usará los valores que antes daban Moroso (cluster 0)
         function cargarEjemploMedio() {
             const valores = {
                 tipoContribuyente: 0,
@@ -442,7 +442,7 @@
                 montoPagado: 0,
                 deudaAcumulada: 1000,
                 aniosMoroso: 5,
-                mesesRetrasoPromedio: 8,    // ← 8 meses → Recuperable
+                mesesRetrasoPromedio: 7,    // ← 7 meses → Moroso (inversión)
                 numNotificaciones: 4,
                 respondioNotificacion: 0,
                 fraccionamiento: 0,
@@ -459,11 +459,11 @@
             document.getElementById('respondio').value = valores.respondioNotificacion;
             document.getElementById('fraccion').value = valores.fraccionamiento;
             document.getElementById('ultimoPago').value = valores.ultimoPago;
-            resultadoDiv.innerHTML = "📋 Ejemplo de Medio Riesgo (Recuperables) cargado. Presione 'Identificar segmento'.";
+            resultadoDiv.innerHTML = "📋 Ejemplo de Medio Riesgo cargado. Presione 'Identificar segmento'.";
             resultadoDiv.style.borderLeftColor = "#f1c40f";
         }
 
-        // Bajo Riesgo → Cumplidos (cluster 2). Valores típicos de bajo riesgo
+        // Bajo Riesgo (sin cambios)
         function cargarEjemploBajo() {
             const valores = {
                 tipoContribuyente: 0,
@@ -489,7 +489,7 @@
             document.getElementById('respondio').value = valores.respondioNotificacion;
             document.getElementById('fraccion').value = valores.fraccionamiento;
             document.getElementById('ultimoPago').value = valores.ultimoPago;
-            resultadoDiv.innerHTML = "📋 Ejemplo de Bajo Riesgo (Cumplidos) cargado. Presione 'Identificar segmento'.";
+            resultadoDiv.innerHTML = "📋 Ejemplo de Bajo Riesgo cargado. Presione 'Identificar segmento'.";
             resultadoDiv.style.borderLeftColor = "#2ecc71";
         }
 
