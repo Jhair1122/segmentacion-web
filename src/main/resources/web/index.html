@@ -32,19 +32,25 @@
             position: relative;
         }
 
-        .glass-card {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.97);
-            backdrop-filter: blur(8px);
-            border-radius: 2rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        /* Animación de entrada para la tarjeta */
+        @keyframes fadeInScale {
+            0% { opacity: 0; transform: scale(0.96); }
+            100% { opacity: 1; transform: scale(1); }
         }
 
+        .glass-card {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(4px);
+            border-radius: 2rem;
+            box-shadow: 0 30px 50px -20px rgba(0,0,0,0.3);
+            overflow: hidden;
+            animation: fadeInScale 0.5s ease-out;
+            transition: box-shadow 0.3s;
+        }
         .glass-card:hover {
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 35px 55px -20px rgba(0,0,0,0.35);
         }
 
         .header {
@@ -54,17 +60,10 @@
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            border-bottom: 3px solid #ffd966;
-            position: relative;
-            z-index: 2;
-        }
-
-        .logo-area {
-            display: flex;
-            align-items: center;
             gap: 1rem;
+            border-bottom: 3px solid #ffd966;
         }
-
+        .logo-area { display: flex; align-items: center; gap: 1rem; }
         .logo-icon {
             background: #f5f5dc;
             border-radius: 50%;
@@ -75,26 +74,12 @@
             justify-content: center;
             font-size: 2rem;
             color: #0e4b2c;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
         }
-
-        .logo-icon:hover {
-            transform: scale(1.05) rotate(5deg);
-        }
-
-        .title-text h1 {
-            color: white;
-            font-size: 1.8rem;
-            font-weight: 800;
-            letter-spacing: -0.3px;
-        }
-
-        .title-text p {
-            color: #d4ecd4;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
+        .logo-icon:hover { transform: scale(1.05); }
+        .title-text h1 { color: white; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.3px; }
+        .title-text p { color: #d4ecd4; font-size: 0.9rem; font-weight: 500; }
 
         .form-grid {
             padding: 1.5rem 2rem;
@@ -102,47 +87,30 @@
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1rem 1.5rem;
         }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-            transition: transform 0.2s;
-        }
-
-        .input-group:hover {
-            transform: translateY(-2px);
-        }
-
+        .input-group { display: flex; flex-direction: column; gap: 0.3rem; }
         .input-group label {
-            font-weight: 700;
-            color: #1f3b2c;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-weight: 700; color: #1f3b2c; font-size: 0.75rem;
+            text-transform: uppercase; letter-spacing: 0.5px;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
-
-        .input-group input,
-        .input-group select {
+        .input-group input, .input-group select {
             padding: 0.75rem 1rem;
             border: 1.5px solid #e2e8f0;
             border-radius: 1rem;
             font-size: 0.95rem;
             background: #fefefe;
-            transition: all 0.25s;
+            transition: all 0.25s ease;
         }
-
-        .input-group input:focus,
-        .input-group select:focus {
+        .input-group input:focus, .input-group select:focus {
             border-color: #2d6a4f;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.2);
+            box-shadow: 0 0 0 3px rgba(45,106,79,0.2);
             transform: scale(1.01);
         }
 
+        /* Botones con efecto shine y ripple */
         .btn-modern {
             background: linear-gradient(95deg, #14532d, #1f7a46);
             border: none;
@@ -154,43 +122,35 @@
             font-size: 1rem;
             margin: 0.5rem 2rem 1rem;
             width: calc(100% - 4rem);
-            transition: all 0.3s;
-            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.15);
             position: relative;
             overflow: hidden;
         }
-
         .btn-modern::after {
-            content: '';
+            content: "";
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 300%;
-            height: 300%;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            transition: transform 0.4s;
+            top: -50%;
+            left: -60%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255,255,255,0.2);
+            transform: rotate(25deg);
+            transition: all 0.5s;
         }
-
-        .btn-modern:active::after {
-            transform: translate(-50%, -50%) scale(1);
-        }
-
+        .btn-modern:hover::after { left: 100%; }
         .btn-modern:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 22px rgba(0,0,0,0.2);
             background: linear-gradient(95deg, #0f4624, #186e3a);
-            box-shadow: 0 12px 22px rgba(0, 0, 0, 0.2);
         }
-
         .btn-secondary {
             background: linear-gradient(95deg, #2c6e4f, #1f7a46);
             width: auto;
             padding: 0.7rem 1.2rem;
-            margin: 0 0.5rem;
+            margin: 0 1rem;
             font-size: 0.9rem;
         }
-
         .button-group {
             display: flex;
             justify-content: center;
@@ -199,20 +159,20 @@
             margin: 0.5rem 2rem 0;
         }
 
+        /* Tarjeta de resultado */
         .result-card {
             margin: 0 2rem 1rem;
             padding: 1.5rem;
             border-radius: 1.5rem;
             background: rgba(249, 250, 249, 0.95);
+            backdrop-filter: blur(2px);
             border-left: 8px solid #2ecc71;
             text-align: center;
-            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-            backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
         }
-
         .result-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
         }
 
         .graph-container {
@@ -220,7 +180,7 @@
             padding: 1rem;
             background: #0d1f14;
             border-radius: 1.5rem;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3), 0 5px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .footer {
@@ -237,88 +197,24 @@
         }
 
         @media (max-width: 720px) {
-            body {
-                padding: 1rem;
-            }
-
-            .btn-modern {
-                width: calc(100% - 2rem);
-                margin: 0.5rem 1rem;
-            }
-
-            .form-grid {
-                padding: 1rem;
-            }
-
-            .graph-container {
-                margin: 1rem;
-            }
-
-            .button-group {
-                margin: 0.5rem 1rem;
-            }
+            body { padding: 1rem; }
+            .btn-modern { width: calc(100% - 2rem); margin: 0.5rem 1rem; }
+            .form-grid { padding: 1rem; }
+            .graph-container { margin: 1rem; }
+            .button-group { margin: 0.5rem 1rem; }
         }
 
-        /* Animaciones de entrada */
-        @keyframes fadeSlideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* Loader personalizado */
+        .loader-ring {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
         }
-
-        .glass-card,
-        .result-card {
-            animation: fadeSlideUp 0.6s ease-out;
-        }
-
-        .input-group {
-            animation: fadeSlideUp 0.4s backwards;
-        }
-
-        .input-group:nth-child(1) { animation-delay: 0.05s; }
-        .input-group:nth-child(2) { animation-delay: 0.10s; }
-        .input-group:nth-child(3) { animation-delay: 0.15s; }
-        .input-group:nth-child(4) { animation-delay: 0.20s; }
-        .input-group:nth-child(5) { animation-delay: 0.25s; }
-        .input-group:nth-child(6) { animation-delay: 0.30s; }
-        .input-group:nth-child(7) { animation-delay: 0.35s; }
-        .input-group:nth-child(8) { animation-delay: 0.40s; }
-        .input-group:nth-child(9) { animation-delay: 0.45s; }
-        .input-group:nth-child(10) { animation-delay: 0.50s; }
-        .input-group:nth-child(11) { animation-delay: 0.55s; }
-
-        /* Tooltip moderno */
-        [data-tooltip] {
-            position: relative;
-            cursor: help;
-        }
-
-        [data-tooltip]:before {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 120%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1f3b2c;
-            color: #fff;
-            padding: 0.4rem 0.8rem;
-            border-radius: 0.5rem;
-            font-size: 0.7rem;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-            z-index: 20;
-        }
-
-        [data-tooltip]:hover:before {
-            opacity: 1;
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -329,70 +225,24 @@
                 <div class="logo-icon"><i class="fas fa-chart-pie"></i></div>
                 <div class="title-text">
                     <h1>Segmentación de Contribuyentes</h1>
-                    <p>Municipalidad Distrital de Pangoa · K-Means · Análisis de perfiles</p>
+                    <p>Municipalidad Distrital de Pangoa · K-Means · Análisis inteligente</p>
                 </div>
             </div>
             <div style="color:#e8f0e8; font-weight:600;"><i class="fas fa-brain"></i> Clustering con Weka</div>
         </div>
 
         <form class="form-grid" id="segmentForm">
-            <div class="input-group">
-                <label><i class="fas fa-user"></i> Tipo contribuyente</label>
-                <select id="tipo">
-                    <option value="0">Persona natural</option>
-                    <option value="1">Persona jurídica</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label><i class="fas fa-calendar-alt"></i> Frecuencia de pago</label>
-                <select id="frecuencia">
-                    <option value="0">Puntual</option>
-                    <option value="1">Con retraso</option>
-                    <option value="2">Nunca paga</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label><i class="fas fa-money-bill-wave"></i> Monto impuesto (S/.)</label>
-                <input type="number" step="any" id="montoImpuesto" value="1000" placeholder="Ej: 5000">
-            </div>
-            <div class="input-group">
-                <label><i class="fas fa-hand-holding-usd"></i> Monto pagado (S/.)</label>
-                <input type="number" step="any" id="montoPagado" value="500" placeholder="Ej: 800">
-            </div>
-            <div class="input-group">
-                <label><i class="fas fa-chart-line"></i> Deuda acumulada (S/.)</label>
-                <input type="number" step="any" id="deudaAcumulada" value="200" placeholder="Ej: 1200">
-            </div>
-            <div class="input-group">
-                <label><i class="fas fa-hourglass-half"></i> Años en morosidad</label>
-                <input type="number" id="aniosMoroso" value="0" placeholder="Ej: 2">
-            </div>
-            <div class="input-group">
-                <label><i class="fas fa-clock"></i> Meses retraso promedio</label>
-                <input type="number" step="any" id="mesesRetraso" value="0" placeholder="Ej: 3.5">
-            </div>
-            <div class="input-group">
-                <label><i class="fas fa-envelope"></i> N° notificaciones</label>
-                <input type="number" id="numNotificaciones" value="0" placeholder="Ej: 2">
-            </div>
-            <div class="input-group">
-                <label><i class="fas fa-reply-all"></i> Respondió notificaciones</label>
-                <select id="respondio">
-                    <option value="1">Sí</option>
-                    <option value="0">No</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label><i class="fas fa-file-signature"></i> Solicitó fraccionamiento</label>
-                <select id="fraccion">
-                    <option value="1">Sí</option>
-                    <option value="0">No</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label><i class="fas fa-calendar-week"></i> Año último pago</label>
-                <input type="number" id="ultimoPago" value="2024" placeholder="Ej: 2023">
-            </div>
+            <div class="input-group"><label><i class="fas fa-user"></i> Tipo contribuyente</label><select id="tipo"><option value="0">Persona natural</option><option value="1">Persona jurídica</option></select></div>
+            <div class="input-group"><label><i class="fas fa-calendar-alt"></i> Frecuencia de pago</label><select id="frecuencia"><option value="0">Puntual</option><option value="1">Con retraso</option><option value="2">Nunca paga</option></select></div>
+            <div class="input-group"><label><i class="fas fa-money-bill-wave"></i> Monto impuesto (S/.)</label><input type="number" step="any" id="montoImpuesto" value="1000"></div>
+            <div class="input-group"><label><i class="fas fa-hand-holding-usd"></i> Monto pagado (S/.)</label><input type="number" step="any" id="montoPagado" value="500"></div>
+            <div class="input-group"><label><i class="fas fa-chart-line"></i> Deuda acumulada (S/.)</label><input type="number" step="any" id="deudaAcumulada" value="200"></div>
+            <div class="input-group"><label><i class="fas fa-hourglass-half"></i> Años en morosidad</label><input type="number" id="aniosMoroso" value="0"></div>
+            <div class="input-group"><label><i class="fas fa-clock"></i> Meses retraso promedio</label><input type="number" step="any" id="mesesRetraso" value="0"></div>
+            <div class="input-group"><label><i class="fas fa-envelope"></i> N° notificaciones</label><input type="number" id="numNotificaciones" value="0"></div>
+            <div class="input-group"><label><i class="fas fa-reply-all"></i> Respondió notificaciones</label><select id="respondio"><option value="1">Sí</option><option value="0">No</option></select></div>
+            <div class="input-group"><label><i class="fas fa-file-signature"></i> Solicitó fraccionamiento</label><select id="fraccion"><option value="1">Sí</option><option value="0">No</option></select></div>
+            <div class="input-group"><label><i class="fas fa-calendar-week"></i> Año último pago</label><input type="number" id="ultimoPago" value="2024"></div>
         </form>
 
         <div class="button-group">
@@ -412,16 +262,34 @@
     </div>
 
     <script>
-        // ========== PARTÍCULAS DE FONDO ==========
+        // === CONFIGURACIÓN VISUAL (3 clusters) ===
+        // Colores semánticos: Rojo (Morosos), Amarillo (Recuperables), Verde (Cumplidos)
+        const coloresSemanticos = ['#e74c3c', '#f1c40f', '#2ecc71'];
+        const nombresSemanticos = [
+            'Segmento 0: Morosos',
+            'Segmento 1: Recuperables',
+            'Segmento 2: Cumplidos'
+        ];
+        // Posiciones fijas en fila horizontal centrada (3 círculos)
+        const clusterPositions = [
+            { x: 1.0, y: 1.5 },   // Morosos
+            { x: 2.5, y: 1.5 },   // Recuperables
+            { x: 4.0, y: 1.5 }    // Cumplidos
+        ];
+        const radio = 0.8;
+
+        let graficoDiv = document.getElementById('grafico');
+        let resultadoDiv = document.getElementById('resultado');
+        let puntosPorCluster = null;
+
+        // --- Partículas de fondo (canvas) ---
         const canvas = document.getElementById('particles-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
-
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
-
         function createParticles() {
             particles = [];
             for (let i = 0; i < 60; i++) {
@@ -429,13 +297,13 @@
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height,
                     radius: Math.random() * 2.5 + 1,
+                    alpha: Math.random() * 0.4 + 0.1,
                     speedX: (Math.random() - 0.5) * 0.3,
                     speedY: (Math.random() - 0.5) * 0.2,
-                    color: `rgba(45, 106, 79, ${Math.random() * 0.4 + 0.1})`
+                    color: `rgba(45, 106, 79, ${Math.random() * 0.3 + 0.1})`
                 });
             }
         }
-
         function drawParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             for (let p of particles) {
@@ -452,7 +320,6 @@
             }
             requestAnimationFrame(drawParticles);
         }
-
         window.addEventListener('resize', () => {
             resizeCanvas();
             createParticles();
@@ -461,47 +328,18 @@
         createParticles();
         drawParticles();
 
-        // ========== CONFIGURACIÓN VISUAL (3 CLUSTERS) ==========
-        // Colores: Rojo (Morosos), Amarillo (Recuperables), Verde (Cumplidos)
-        const coloresSemanticos = ['#e74c3c', '#f1c40f', '#2ecc71'];
-        const nombresSemanticos = [
-            'Morosos',
-            'Recuperables',
-            'Cumplidos'
-        ];
-        // Posiciones en línea horizontal centrada
-        const clusterPositions = [
-            { x: 1.0, y: 1.5 },   // Morosos
-            { x: 2.0, y: 1.5 },   // Recuperables
-            { x: 3.0, y: 1.5 }    // Cumplidos
-        ];
-        const radio = 0.7;
-
-        let graficoDiv = document.getElementById('grafico');
-        let resultadoDiv = document.getElementById('resultado');
-        let puntosPorCluster = null;
-
-        // Función para mapear cluster 3 a 1 (Recuperables)
-        function mapearCluster(cluster) {
-            // Si el backend devuelve 3 (Recuperables alto monto), lo tratamos como 1 (Recuperables)
-            if (cluster === 3) return 1;
-            return cluster;
-        }
-
-        // Cargar puntos históricos y filtrar solo clusters 0,1,2
+        // --- Cargar puntos históricos ---
         async function cargarPuntosHistoricos() {
             try {
                 const resp = await fetch('/puntos');
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                 const puntosData = await resp.json();
-                // Filtramos solo clusters 0,1,2 (ignoramos el 3)
+                // Solo nos interesan los clusters 0,1,2 (ignoramos el 3 si existe)
                 puntosPorCluster = {};
                 for (let i = 0; i <= 2; i++) {
-                    if (puntosData[i] && puntosData[i].x && puntosData[i].x.length > 0) {
-                        puntosPorCluster[i] = puntosData[i];
-                    }
+                    puntosPorCluster[i] = puntosData[i] || { x: [], y: [] };
                 }
-                console.log('Puntos históricos cargados (solo 3 clusters)');
+                console.log('Puntos históricos cargados (3 clusters)');
                 dibujarGrafico(null);
             } catch (err) {
                 console.error('Error cargando puntos históricos:', err);
@@ -509,12 +347,12 @@
             }
         }
 
+        // Dibujar gráfico con 3 círculos, puntos históricos y estrella
         function dibujarGrafico(clusterSeleccionado) {
-            if (!puntosPorCluster) return;
             let shapes = [];
             let traces = [];
 
-            // 1. Círculos para 3 clusters
+            // 1. Círculos
             for (let i = 0; i < clusterPositions.length; i++) {
                 const pos = clusterPositions[i];
                 const color = coloresSemanticos[i];
@@ -538,7 +376,7 @@
                     y: [pos.y],
                     mode: 'text',
                     text: [`<b>${nombresSemanticos[i]}</b>`],
-                    textfont: { size: 12, color: color, weight: 'bold' },
+                    textfont: { size: 11, color: color },
                     showlegend: false,
                     hoverinfo: 'skip',
                     type: 'scatter'
@@ -546,38 +384,39 @@
             }
 
             // 2. Puntos históricos dentro de cada círculo (escalados)
-            for (let i = 0; i < clusterPositions.length; i++) {
-                const clusterId = i;
-                const pts = puntosPorCluster[clusterId];
-                if (pts && pts.x && pts.x.length > 0) {
-                    const posCentro = clusterPositions[clusterId];
-                    const xs = pts.x;
-                    const ys = pts.y;
-                    const xMin = Math.min(...xs);
-                    const xMax = Math.max(...xs);
-                    const yMin = Math.min(...ys);
-                    const yMax = Math.max(...ys);
-                    const xRange = (xMax - xMin) || 1;
-                    const yRange = (yMax - yMin) || 1;
-                    const scaleX = (radio * 0.9) / xRange;
-                    const scaleY = (radio * 0.9) / yRange;
-                    const puntosEscaladosX = xs.map(v => posCentro.x + (v - xMin) * scaleX - (radio * 0.9)/2);
-                    const puntosEscaladosY = ys.map(v => posCentro.y + (v - yMin) * scaleY - (radio * 0.9)/2);
-                    const color = coloresSemanticos[clusterId];
-                    traces.push({
-                        x: puntosEscaladosX,
-                        y: puntosEscaladosY,
-                        mode: 'markers',
-                        name: `Contribuyentes ${nombresSemanticos[clusterId]}`,
-                        marker: { color: color, size: 4, opacity: 0.5, symbol: 'circle' },
-                        type: 'scatter',
-                        showlegend: false,
-                        hoverinfo: 'none'
-                    });
+            if (puntosPorCluster) {
+                for (let i = 0; i < clusterPositions.length; i++) {
+                    const pts = puntosPorCluster[i];
+                    if (pts && pts.x && pts.x.length > 0) {
+                        const posCentro = clusterPositions[i];
+                        const xs = pts.x;
+                        const ys = pts.y;
+                        const xMin = Math.min(...xs);
+                        const xMax = Math.max(...xs);
+                        const yMin = Math.min(...ys);
+                        const yMax = Math.max(...ys);
+                        const xRange = (xMax - xMin) || 1;
+                        const yRange = (yMax - yMin) || 1;
+                        const scaleX = (radio * 0.9) / xRange;
+                        const scaleY = (radio * 0.9) / yRange;
+                        const puntosEscaladosX = xs.map(v => posCentro.x + (v - xMin) * scaleX - (radio * 0.9)/2);
+                        const puntosEscaladosY = ys.map(v => posCentro.y + (v - yMin) * scaleY - (radio * 0.9)/2);
+                        const color = coloresSemanticos[i];
+                        traces.push({
+                            x: puntosEscaladosX,
+                            y: puntosEscaladosY,
+                            mode: 'markers',
+                            name: `Contribuyentes ${nombresSemanticos[i]}`,
+                            marker: { color: color, size: 4, opacity: 0.5, symbol: 'circle' },
+                            type: 'scatter',
+                            showlegend: false,
+                            hoverinfo: 'none'
+                        });
+                    }
                 }
             }
 
-            // 3. Estrella del usuario (con mapeo de cluster)
+            // 3. Estrella del contribuyente actual
             if (clusterSeleccionado !== null && clusterSeleccionado >= 0 && clusterSeleccionado < clusterPositions.length) {
                 const posEstrella = clusterPositions[clusterSeleccionado];
                 traces.push({
@@ -610,20 +449,20 @@
                     showgrid: false,
                     zeroline: false,
                     showticklabels: false,
-                    range: [0.4, 3.6],
+                    range: [0, 5],
                     fixedrange: false
                 },
                 yaxis: {
                     showgrid: false,
                     zeroline: false,
                     showticklabels: false,
-                    range: [0.5, 2.5],
+                    range: [0.2, 2.8],
                     scaleanchor: 'x',
                     scaleratio: 1,
                     fixedrange: false
                 },
-                height: 450,
-                margin: { l: 20, r: 20, t: 60, b: 20 },
+                height: 520,
+                margin: { l: 30, r: 30, t: 60, b: 30 },
                 hovermode: 'closest',
                 legend: {
                     bgcolor: 'rgba(0,0,0,0.65)',
@@ -643,7 +482,7 @@
             Plotly.react(graficoDiv, traces, layout, { responsive: true });
         }
 
-        // Redimensionado
+        // Redimensionar gráfico al cambiar tamaño de ventana
         window.addEventListener('resize', () => {
             if (graficoDiv && graficoDiv.data) {
                 Plotly.relayout(graficoDiv, { autosize: true });
@@ -651,7 +490,7 @@
             }
         });
 
-        // EJEMPLOS
+        // --- Ejemplos con valores correctos ---
         function cargarEjemploAlto() {
             document.getElementById('tipo').value = "0";
             document.getElementById('frecuencia').value = "2";
@@ -700,11 +539,11 @@
             resultadoDiv.style.borderLeftColor = "#2ecc71";
         }
 
-        // Segmentar contribuyente
+        // --- Segmentar contribuyente ---
         async function segmentar() {
             const btn = document.getElementById('btnSegmentar');
             const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Procesando...';
+            btn.innerHTML = '<div class="loader-ring"></div> Procesando...';
             btn.disabled = true;
 
             const datos = {
@@ -738,30 +577,12 @@
                 const res = await response.json();
                 if (res.error) throw new Error(res.error);
 
-                let cluster = res.cluster;
-                // Mapeamos cluster 3 a 1 (Recuperables)
-                cluster = mapearCluster(cluster);
-
+                const cluster = res.cluster;
                 const info = res.info || {};
-                // Si venía de cluster 3, usamos información de recuperables (cluster 1)
-                let nombre, desc, accion, caracteristicas;
-                if (res.cluster === 3) {
-                    // Forzamos información del cluster 1
-                    nombre = 'Segmento 1: Recuperables';
-                    desc = 'Contribuyentes con deuda pero que han realizado pagos parciales.';
-                    accion = 'Ofrecer plan de fraccionamiento y orientación tributaria.';
-                    caracteristicas = [
-                        'Deuda promedio: S/. 1766.83',
-                        'Han realizado pagos parciales',
-                        'Potencial de regularización'
-                    ];
-                } else {
-                    nombre = info.nombre || `Segmento ${cluster}`;
-                    desc = info.descripcion || '';
-                    accion = info.accion || 'Revisar historial.';
-                    caracteristicas = info.caracteristicas || [];
-                }
-
+                const nombre = info.nombre || `Segmento ${cluster}`;
+                const desc = info.descripcion || '';
+                const accion = info.accion || 'Revisar historial.';
+                const caracteristicas = info.caracteristicas || [];
                 let caracHtml = '';
                 if (caracteristicas.length) {
                     caracHtml = '<ul style="text-align:left;display:inline-block;margin:12px 0;">' +
