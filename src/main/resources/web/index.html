@@ -97,7 +97,7 @@
             transition: transform 0.2s;
         }
         .result-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-        .graph-container { margin: 1rem 2rem 2rem; padding: 1rem; background: #0d1f14; border-radius: 1.5rem; }
+        .graph-container { margin: 1rem 2rem 2rem; padding: 1rem; background: #0d1f14; border-radius: 1.5rem; width: auto; }
         .footer {
             background: #eaf4ea; padding: 1rem; text-align: center;
             font-size: 0.8rem; color: #2c5e3c; border-top: 1px solid #cde0cd;
@@ -157,35 +157,56 @@
 </div>
 
 <script>
-    // Definir posiciones fijas para cada cluster (cuadrícula 2x2)
-    // Orden: Cluster 0,1,2,3
-    const clusterPositions = [
-        { x: 0.5, y: 0.5 },   // Cluster 0: Morosos
-        { x: 2.5, y: 0.5 },   // Cluster 1: Recuperables
-        { x: 0.5, y: 2.5 },   // Cluster 2: Cumplidos
-        { x: 2.5, y: 2.5 }    // Cluster 3: Recuperables alto monto
-    ];
-    const radio = 0.8;
-    const colores = ['#2ecc71', '#f1c40f', '#e74c3c', '#3498db'];
-    const nombres = [
+    // === CONFIGURACIÓN VISUAL ===
+    // Colores semánticos: Verde para Cumplidos (cluster 2), los demás según coherencia.
+    // Asignación: cluster 0 -> Morosos (rojo), cluster 1 -> Recuperables (naranja/amarillo), cluster 2 -> Cumplidos (verde), cluster 3 -> Recuperables alto monto (azul)
+    const coloresSemanticos = ['#e74c3c', '#f1c40f', '#2ecc71', '#3498db'];
+    const nombresSemanticos = [
         'Segmento 0: Morosos',
         'Segmento 1: Recuperables',
         'Segmento 2: Cumplidos',
         'Segmento 3: Recuperables alto monto'
     ];
+    // Posiciones fijas en cuadrícula (2x2)
+    const clusterPositions = [
+        { x: 0.5, y: 0.5 },   // Cluster 0
+        { x: 2.5, y: 0.5 },   // Cluster 1
+        { x: 0.5, y: 2.5 },   // Cluster 2
+        { x: 2.5, y: 2.5 }    // Cluster 3
+    ];
+    const radio = 0.8;
 
     let graficoDiv = document.getElementById('grafico');
     let resultadoDiv = document.getElementById('resultado');
+    let puntosData = null;        // Datos originales de /puntos
+    let puntosPorCluster = null;  // Almacenará los puntos originales por cluster
 
-    // Dibujar gráfico con círculos fijos y estrella en el cluster correspondiente
+    // Cargar los puntos históricos (contribuyentes ya segmentados) para mostrarlos dentro de cada círculo
+    async function cargarPuntosHistoricos() {
+        try {
+            const resp = await fetch('/puntos');
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            puntosData = await resp.json();
+            puntosPorCluster = puntosData;
+            console.log('Puntos históricos cargados');
+            // Una vez cargados, dibujamos el gráfico (inicialmente sin estrella)
+            dibujarGrafico(null);
+        } catch (err) {
+            console.error('Error cargando puntos históricos:', err);
+            // Si falla, igual dibujamos sin puntos internos
+            dibujarGrafico(null);
+        }
+    }
+
+    // Dibujar gráfico con círculos, puntos históricos dentro (escalados) y estrella opcional
     function dibujarGrafico(clusterSeleccionado) {
         let shapes = [];
         let traces = [];
 
-        // Crear los 4 círculos
+        // 1. Círculos (fijos)
         for (let i = 0; i < clusterPositions.length; i++) {
             const pos = clusterPositions[i];
-            const color = colores[i];
+            const color = coloresSemanticos[i];
             const isHighlighted = (clusterSeleccionado !== null && i === clusterSeleccionado);
             const lineWidth = isHighlighted ? 4 : 2;
             const fillOpacity = isHighlighted ? 0.35 : 0.2;
@@ -200,12 +221,12 @@
                 layer: 'below'
             });
 
-            // Etiqueta del cluster en el centro
+            // Etiqueta central del cluster
             traces.push({
                 x: [pos.x],
                 y: [pos.y],
                 mode: 'text',
-                text: [`<b>${nombres[i]}</b>`],
+                text: [`<b>${nombresSemanticos[i]}</b>`],
                 textfont: { size: 12, color: color },
                 showlegend: false,
                 hoverinfo: 'skip',
@@ -213,7 +234,45 @@
             });
         }
 
-        // Si hay un cluster seleccionado, agregar estrella en el centro de ese cluster
+        // 2. Puntos históricos dentro de cada círculo (si existen)
+        if (puntosPorCluster) {
+            for (let i = 0; i < clusterPositions.length; i++) {
+                const clusterId = i;
+                const pts = puntosPorCluster[clusterId.toString()];
+                if (pts && pts.x && pts.x.length > 0) {
+                    const posCentro = clusterPositions[clusterId];
+                    // Necesitamos escalar los puntos originales (cuyo rango real es grande) para que quepan dentro del círculo.
+                    // Calculamos el rango de los puntos originales de este cluster.
+                    const xs = pts.x;
+                    const ys = pts.y;
+                    const xMin = Math.min(...xs);
+                    const xMax = Math.max(...xs);
+                    const yMin = Math.min(...ys);
+                    const yMax = Math.max(...ys);
+                    const xRange = (xMax - xMin) || 1;
+                    const yRange = (yMax - yMin) || 1;
+                    // Factor de escala para que los puntos quepan dentro de un radio de ~0.7 (dejando espacio al borde)
+                    const scaleX = (radio * 0.9) / xRange;
+                    const scaleY = (radio * 0.9) / yRange;
+                    const puntosEscaladosX = xs.map(v => posCentro.x + (v - xMin) * scaleX - (radio * 0.9)/2);
+                    const puntosEscaladosY = ys.map(v => posCentro.y + (v - yMin) * scaleY - (radio * 0.9)/2);
+                    // Color del cluster (pero con menor opacidad para no saturar)
+                    const color = coloresSemanticos[clusterId];
+                    traces.push({
+                        x: puntosEscaladosX,
+                        y: puntosEscaladosY,
+                        mode: 'markers',
+                        name: `Contribuyentes ${nombresSemanticos[clusterId]}`,
+                        marker: { color: color, size: 4, opacity: 0.5, symbol: 'circle' },
+                        type: 'scatter',
+                        showlegend: false,
+                        hoverinfo: 'none'
+                    });
+                }
+            }
+        }
+
+        // 3. Estrella del contribuyente actual (si se ha segmentado)
         if (clusterSeleccionado !== null && clusterSeleccionado >= 0 && clusterSeleccionado < clusterPositions.length) {
             const posEstrella = clusterPositions[clusterSeleccionado];
             traces.push({
@@ -227,7 +286,7 @@
                 marker: { symbol: 'star', size: 28, color: '#ffd966', line: { width: 2, color: '#fff' } },
                 type: 'scatter',
                 hoverinfo: 'text',
-                hovertemplate: `⭐ Pertenece a ${nombres[clusterSeleccionado]}<extra></extra>`,
+                hovertemplate: `⭐ Pertenece a ${nombresSemanticos[clusterSeleccionado]}<extra></extra>`,
                 legendgroup: 'usuario'
             });
         }
@@ -246,7 +305,8 @@
                 showgrid: false,
                 zeroline: false,
                 showticklabels: false,
-                range: [-0.5, 3.5]
+                range: [-0.5, 3.5],
+                fixedrange: false  // permitir zoom, pero la responsividad global se manejará
             },
             yaxis: {
                 showgrid: false,
@@ -254,7 +314,8 @@
                 showticklabels: false,
                 range: [-0.5, 3.5],
                 scaleanchor: 'x',
-                scaleratio: 1
+                scaleratio: 1,
+                fixedrange: false
             },
             height: 550,
             margin: { l: 20, r: 20, t: 60, b: 20 },
@@ -269,10 +330,21 @@
                 xanchor: 'left',
                 yanchor: 'top'
             },
-            shapes: shapes
+            shapes: shapes,
+            autosize: true,
+            responsive: true
         };
-        Plotly.newPlot(graficoDiv, traces, layout, { responsive: true });
+        
+        // Usamos Plotly.react para actualizar eficientemente
+        Plotly.react(graficoDiv, traces, layout, { responsive: true });
     }
+
+    // Reaccionar al cambio de tamaño de la ventana (opcional, Plotly ya es responsive)
+    window.addEventListener('resize', () => {
+        if (graficoDiv && graficoDiv.data) {
+            Plotly.relayout(graficoDiv, { autosize: true });
+        }
+    });
 
     // Cargar ejemplo (riesgo medio)
     function cargarEjemplo() {
@@ -360,8 +432,8 @@
         }
     }
 
-    // Inicializar gráfico sin estrella
-    dibujarGrafico(null);
+    // Inicialización: cargar puntos históricos y dibujar gráfico base
+    cargarPuntosHistoricos();
     document.getElementById('btnSegmentar').addEventListener('click', segmentar);
     document.getElementById('btnEjemplo').addEventListener('click', cargarEjemplo);
 </script>
