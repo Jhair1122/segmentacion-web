@@ -1,4 +1,4 @@
-@relation 'dataset_pangoa_nosupervisado (2)'
+@relation 'dataset_pangoa_nosupervisado'
 
 @attribute tipo_contribuyente {'Persona juridica','Persona natural'}
 @attribute monto_impuesto numeric
