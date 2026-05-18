@@ -51,14 +51,11 @@
         .input-group label {
             font-weight: 700; color: #1f3b2c; font-size: 0.75rem;
             text-transform: uppercase; letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            display: flex; align-items: center; gap: 0.5rem;
         }
         .input-group input, .input-group select {
             padding: 0.75rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 1rem;
-            font-size: 0.95rem; background: #fefefe;
-            transition: all 0.2s;
+            font-size: 0.95rem; background: #fefefe; transition: all 0.2s;
         }
         .input-group input:focus, .input-group select:focus {
             border-color: #2d6a4f; outline: none; box-shadow: 0 0 0 3px rgba(45,106,79,0.2);
@@ -79,8 +76,7 @@
         .result-card {
             margin: 0 2rem 1rem; padding: 1.5rem; border-radius: 1.5rem;
             background: #f9faf9; border-left: 8px solid #2ecc71;
-            text-align: center;
-            transition: transform 0.2s;
+            text-align: center; transition: transform 0.2s;
         }
         .result-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
         .graph-container { margin: 1rem 2rem 2rem; padding: 1rem; background: #0d1f14; border-radius: 1.5rem; }
@@ -138,79 +134,218 @@
     let puntosData = null;
     let graficoDiv = document.getElementById('grafico');
     let resultadoDiv = document.getElementById('resultado');
-    let fixedRanges = null;
 
-    // Calcular elipse de confianza (95%) a partir de puntos
-    function calcularElipse(puntos) {
-        if (!puntos.x || puntos.x.length < 3) return null;
-        const n = puntos.x.length;
+    // Colores y nombres de cluster
+    const COLORES = ['#2ecc71', '#f1c40f', '#e74c3c', '#3498db'];
+    const NOMBRES = [
+        'Segmento 0: Morosos',
+        'Segmento 1: Recuperables',
+        'Segmento 2: Cumplidos',
+        'Segmento 3: Recuperables alto monto'
+    ];
+
+    // ─── Calcular elipse de confianza 95% ────────────────────────────────────
+    function calcularElipse(pts) {
+        if (!pts.x || pts.x.length < 3) return null;
+        const n = pts.x.length;
         let sumX = 0, sumY = 0;
-        for (let i = 0; i < n; i++) {
-            sumX += puntos.x[i];
-            sumY += puntos.y[i];
-        }
-        const cx = sumX / n;
-        const cy = sumY / n;
-        // Matriz de covarianza
+        for (let i = 0; i < n; i++) { sumX += pts.x[i]; sumY += pts.y[i]; }
+        const cx = sumX / n, cy = sumY / n;
+
         let covXX = 0, covYY = 0, covXY = 0;
         for (let i = 0; i < n; i++) {
-            const dx = puntos.x[i] - cx;
-            const dy = puntos.y[i] - cy;
-            covXX += dx * dx;
-            covYY += dy * dy;
-            covXY += dx * dy;
+            const dx = pts.x[i] - cx, dy = pts.y[i] - cy;
+            covXX += dx * dx; covYY += dy * dy; covXY += dx * dy;
         }
-        covXX /= (n - 1);
-        covYY /= (n - 1);
-        covXY /= (n - 1);
-        // Para elipse de confianza al 95%: chi2 con 2 grados de libertad ~ 5.991
+        covXX /= (n - 1); covYY /= (n - 1); covXY /= (n - 1);
+
+        // chi² = 5.991 → 95 %
         const chi2 = 5.991;
-        // Radio en dirección de los ejes principales
-        const w = Math.sqrt(chi2 * (covXX + covYY + Math.sqrt(Math.pow(covXX - covYY, 2) + 4 * covXY * covXY)) / 2);
-        const h = Math.sqrt(chi2 * (covXX + covYY - Math.sqrt(Math.pow(covXX - covYY, 2) + 4 * covXY * covXY)) / 2);
-        // Ángulo de rotación
-        let theta = 0;
-        if (Math.abs(covXX - covYY) > 1e-6) {
-            theta = 0.5 * Math.atan2(2 * covXY, covXX - covYY);
-        }
-        return { cx, cy, w, h, theta: theta * 180 / Math.PI };
+        const disc = Math.sqrt(Math.pow(covXX - covYY, 2) + 4 * covXY * covXY);
+        const w = Math.sqrt(Math.max(0, chi2 * (covXX + covYY + disc) / 2));
+        const h = Math.sqrt(Math.max(0, chi2 * (covXX + covYY - disc) / 2));
+        const theta = (Math.abs(covXX - covYY) > 1e-9)
+            ? 0.5 * Math.atan2(2 * covXY, covXX - covYY) * 180 / Math.PI
+            : 0;
+        return { cx, cy, w, h, theta };
     }
 
+    // ─── Calcular rango con margen, incluyendo punto extra opcional ───────────
+    function calcularRanges(puntoExtra) {
+        let allX = [], allY = [];
+        for (const pts of Object.values(puntosData)) {
+            if (pts.x) allX.push(...pts.x);
+            if (pts.y) allY.push(...pts.y);
+        }
+        // Incluir también los bordes de cada elipse
+        for (const [, pts] of Object.entries(puntosData)) {
+            const e = calcularElipse(pts);
+            if (e) {
+                allX.push(e.cx - e.w, e.cx + e.w);
+                allY.push(e.cy - e.h, e.cy + e.h);
+            }
+        }
+        // Incluir punto del usuario si existe
+        if (puntoExtra) {
+            allX.push(puntoExtra.x);
+            allY.push(puntoExtra.y);
+        }
+
+        const xMin = Math.min(...allX), xMax = Math.max(...allX);
+        const yMin = Math.min(...allY), yMax = Math.max(...allY);
+        const mx = (xMax - xMin) * 0.15 || 1;
+        const my = (yMax - yMin) * 0.15 || 1;
+        return {
+            x: [xMin - mx, xMax + mx],
+            y: [yMin - my, yMax + my]
+        };
+    }
+
+    // ─── Dibujar gráfico ──────────────────────────────────────────────────────
+    function dibujarGrafico(clusterResaltado, puntoUsuario) {
+        if (!puntosData) return;
+
+        const ranges = calcularRanges(puntoUsuario);
+        let traces = [];
+        let shapes = [];
+
+        // 1) Elipses de confianza (como shapes de fondo)
+        for (const [cluster, pts] of Object.entries(puntosData)) {
+            const idx = parseInt(cluster);
+            if (!pts.x || pts.x.length < 3) continue;
+            const e = calcularElipse(pts);
+            if (!e) continue;
+
+            const color = COLORES[idx % COLORES.length];
+            const r = parseInt(color.slice(1,3), 16);
+            const g = parseInt(color.slice(3,5), 16);
+            const b = parseInt(color.slice(5,7), 16);
+            const resaltado = (clusterResaltado !== null && idx === clusterResaltado);
+
+            shapes.push({
+                type: 'ellipse',
+                xref: 'x', yref: 'y',
+                x0: e.cx - e.w, x1: e.cx + e.w,
+                y0: e.cy - e.h, y1: e.cy + e.h,
+                line: { color: color, width: resaltado ? 3.5 : 2 },
+                fillcolor: `rgba(${r},${g},${b},${resaltado ? 0.28 : 0.18})`,
+                layer: 'below',
+                opacity: 1
+            });
+
+            // Etiqueta del cluster en el centroide (trace invisible para el hover)
+            traces.push({
+                x: [e.cx], y: [e.cy],
+                mode: 'text',
+                text: [NOMBRES[idx].split(':')[0]],
+                textfont: { size: 11, color: color, family: 'Inter, sans-serif' },
+                showlegend: false,
+                hoverinfo: 'skip',
+                type: 'scatter'
+            });
+        }
+
+        // 2) Nubes de puntos por cluster
+        for (const [cluster, pts] of Object.entries(puntosData)) {
+            const idx = parseInt(cluster);
+            if (!pts.x || pts.x.length === 0) continue;
+            const color = COLORES[idx % COLORES.length];
+            const resaltado = (clusterResaltado !== null && idx === clusterResaltado);
+            traces.push({
+                x: pts.x, y: pts.y,
+                mode: 'markers',
+                name: NOMBRES[idx],
+                marker: {
+                    color: color,
+                    size: resaltado ? 9 : 6,
+                    opacity: resaltado ? 0.95 : 0.65,
+                    line: { width: 0.5, color: 'rgba(255,255,255,0.4)' }
+                },
+                type: 'scatter',
+                hoverinfo: 'text',
+                text: pts.x.map(() => NOMBRES[idx]),
+                legendgroup: `cluster${idx}`
+            });
+        }
+
+        // 3) Estrella del usuario
+        if (puntoUsuario && typeof puntoUsuario.x === 'number' && typeof puntoUsuario.y === 'number') {
+            traces.push({
+                x: [puntoUsuario.x],
+                y: [puntoUsuario.y],
+                mode: 'markers+text',
+                name: '⭐ Contribuyente actual',
+                text: ['  ◀ Tú'],
+                textposition: 'middle right',
+                textfont: { size: 13, color: '#ffd966', family: 'Inter, sans-serif' },
+                marker: {
+                    symbol: 'star',
+                    size: 26,
+                    color: '#ffd966',
+                    line: { width: 2.5, color: '#fff' }
+                },
+                type: 'scatter',
+                hovertemplate: '⭐ Tu contribuyente<br>PC1: %{x:.3f}<br>PC2: %{y:.3f}<extra></extra>',
+                legendgroup: 'usuario'
+            });
+        }
+
+        const layout = {
+            title: {
+                text: 'Mapa de perfiles de contribuyentes (PCA) — Elipses de confianza 95%',
+                font: { color: '#a8dfc0', size: 14 }
+            },
+            plot_bgcolor: '#0d1f14',
+            paper_bgcolor: '#0d1f14',
+            font: { color: '#a8dfc0' },
+            xaxis: {
+                title: 'Componente Principal 1',
+                showgrid: true,
+                gridcolor: 'rgba(255,255,255,0.07)',
+                zeroline: false,
+                tickfont: { size: 10 },
+                // ✅ FIX: rango calculado correctamente, sin scaleanchor
+                range: ranges.x
+            },
+            yaxis: {
+                title: 'Componente Principal 2',
+                showgrid: true,
+                gridcolor: 'rgba(255,255,255,0.07)',
+                zeroline: false,
+                tickfont: { size: 10 },
+                // ✅ FIX: eliminado scaleanchor/scaleratio para que cada eje
+                //         escale independientemente y los clusters se vean separados
+                range: ranges.y
+            },
+            height: 560,
+            margin: { l: 65, r: 160, t: 55, b: 65 },
+            hovermode: 'closest',
+            legend: {
+                bgcolor: 'rgba(0,0,0,0.65)',
+                bordercolor: 'rgba(255,255,255,0.2)',
+                borderwidth: 1,
+                font: { size: 11 },
+                x: 1.01, y: 1,
+                xanchor: 'left', yanchor: 'top'
+            },
+            shapes: shapes
+        };
+
+        Plotly.newPlot(graficoDiv, traces, layout, { responsive: true });
+    }
+
+    // ─── Cargar puntos iniciales ──────────────────────────────────────────────
     async function cargarPuntos() {
         try {
             const resp = await fetch('/puntos');
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             puntosData = await resp.json();
-            console.log('Puntos cargados:', Object.keys(puntosData).length, 'clusters');
-            let algunCluster = false;
-            for (const c in puntosData) {
-                if (puntosData[c].x && puntosData[c].x.length > 0) {
-                    algunCluster = true;
-                    break;
-                }
-            }
-            if (!algunCluster) {
-                resultadoDiv.innerHTML = '<div style="color:#e74c3c;">⚠️ No hay datos de puntos. Verifica puntos_por_cluster.json</div>';
+
+            let tieneData = Object.values(puntosData).some(c => c.x && c.x.length > 0);
+            if (!tieneData) {
+                resultadoDiv.innerHTML = '<div style="color:#e74c3c;">⚠️ No hay datos en puntos_por_cluster.json</div>';
                 return;
             }
-            // Calcular rangos fijos basados en todos los puntos
-            let allX = [], allY = [];
-            for (const pts of Object.values(puntosData)) {
-                if (pts.x) allX.push(...pts.x);
-                if (pts.y) allY.push(...pts.y);
-            }
-            const xMin = Math.min(...allX);
-            const xMax = Math.max(...allX);
-            const yMin = Math.min(...allY);
-            const yMax = Math.max(...allY);
-            const xRange = xMax - xMin;
-            const yRange = yMax - yMin;
-            const xMargin = xRange * 0.1;
-            const yMargin = yRange * 0.1;
-            fixedRanges = {
-                x: [xMin - xMargin, xMax + xMargin],
-                y: [yMin - yMargin, yMax + yMargin]
-            };
             dibujarGrafico(null, null);
         } catch (err) {
             console.error(err);
@@ -218,102 +353,7 @@
         }
     }
 
-    function dibujarGrafico(clusterResaltado, puntoUsuario) {
-        if (!puntosData) return;
-        const colores = ['#2ecc71', '#f1c40f', '#e74c3c', '#3498db'];
-        const nombres = ['Segmento 0: Morosos', 'Segmento 1: Recuperables', 'Segmento 2: Cumplidos', 'Segmento 3: Recuperables alto monto'];
-        let traces = [];
-        let shapes = [];
-
-        // Dibujar elipses de confianza para cada cluster (solo si hay suficientes puntos)
-        for (const [cluster, pts] of Object.entries(puntosData)) {
-            const idx = parseInt(cluster);
-            if (!pts.x || pts.x.length < 3) continue;
-            const elipse = calcularElipse(pts);
-            if (!elipse) continue;
-            const color = colores[idx % colores.length];
-            const lineWidth = (clusterResaltado !== null && idx === clusterResaltado) ? 3 : 1.5;
-            const fillOpacity = 0.15;
-            shapes.push({
-                type: 'ellipse',
-                xref: 'x', yref: 'y',
-                x0: elipse.cx - elipse.w, x1: elipse.cx + elipse.w,
-                y0: elipse.cy - elipse.h, y1: elipse.cy + elipse.h,
-                line: { color: color, width: lineWidth },
-                fillcolor: `rgba(${parseInt(color.slice(1,3),16)}, ${parseInt(color.slice(3,5),16)}, ${parseInt(color.slice(5,7),16)}, ${fillOpacity})`,
-                layer: 'below',
-                opacity: 0.7
-            });
-        }
-
-        // Nubes de puntos
-        for (const [cluster, pts] of Object.entries(puntosData)) {
-            const idx = parseInt(cluster);
-            if (!pts.x || pts.x.length === 0) continue;
-            const color = colores[idx % colores.length];
-            const isHighlighted = (clusterResaltado !== null && idx === clusterResaltado);
-            const markerSize = isHighlighted ? 8 : 5;
-            const markerOpacity = isHighlighted ? 0.9 : 0.6;
-            traces.push({
-                x: pts.x,
-                y: pts.y,
-                mode: 'markers',
-                name: nombres[idx],
-                marker: { color: color, size: markerSize, opacity: markerOpacity, line: { width: 0.3, color: 'white' } },
-                type: 'scatter',
-                hoverinfo: 'text',
-                text: pts.x.map(() => nombres[idx]),
-                legendgroup: `cluster${idx}`
-            });
-        }
-
-        // Punto del usuario
-        if (puntoUsuario && typeof puntoUsuario.x === 'number' && typeof puntoUsuario.y === 'number') {
-            traces.push({
-                x: [puntoUsuario.x],
-                y: [puntoUsuario.y],
-                mode: 'markers+text',
-                name: '⭐ Contribuyente actual',
-                text: ['Tú'],
-                textposition: 'top center',
-                textfont: { size: 12, color: '#ffffff', weight: 'bold' },
-                marker: { symbol: 'star', size: 20, color: '#ffd966', line: { width: 2, color: '#fff' } },
-                type: 'scatter',
-                hoverinfo: 'text',
-                hovertemplate: '⭐ Tu ubicación<br>Cluster ' + clusterResaltado + '<extra></extra>',
-                legendgroup: 'usuario'
-            });
-        }
-
-        const layout = {
-            title: 'Mapa de perfiles de contribuyentes (PCA) - Elipses de confianza 95%',
-            plot_bgcolor: '#0d1f14', paper_bgcolor: '#0d1f14',
-            font: { color: '#a8dfc0' },
-            xaxis: {
-                title: 'Componente Principal 1',
-                showgrid: true, gridcolor: 'rgba(255,255,255,0.08)',
-                zeroline: false, showticklabels: true, tickfont: { size: 10 },
-                range: fixedRanges ? fixedRanges.x : undefined
-            },
-            yaxis: {
-                title: 'Componente Principal 2',
-                showgrid: true, gridcolor: 'rgba(255,255,255,0.08)',
-                zeroline: false, showticklabels: true, tickfont: { size: 10 },
-                range: fixedRanges ? fixedRanges.y : undefined,
-                scaleanchor: 'x', scaleratio: 1
-            },
-            height: 550, margin: { l: 60, r: 60, t: 60, b: 60 },
-            hovermode: 'closest',
-            legend: {
-                bgcolor: 'rgba(0,0,0,0.65)', bordercolor: 'rgba(255,255,255,0.2)',
-                borderwidth: 1, font: { size: 11 },
-                x: 1.02, y: 1, xanchor: 'left', yanchor: 'top'
-            },
-            shapes: shapes
-        };
-        Plotly.newPlot(graficoDiv, traces, layout, { responsive: true });
-    }
-
+    // ─── Segmentar contribuyente ──────────────────────────────────────────────
     async function segmentar() {
         const btn = document.getElementById('btnSegmentar');
         const originalHtml = btn.innerHTML;
@@ -321,17 +361,17 @@
         btn.disabled = true;
 
         const datos = {
-            tipoContribuyente: parseInt(document.getElementById('tipo').value),
-            frecuenciaPago: parseInt(document.getElementById('frecuencia').value),
-            montoImpuesto: parseFloat(document.getElementById('montoImpuesto').value),
-            montoPagado: parseFloat(document.getElementById('montoPagado').value),
-            deudaAcumulada: parseFloat(document.getElementById('deudaAcumulada').value),
-            aniosMoroso: parseInt(document.getElementById('aniosMoroso').value),
+            tipoContribuyente:    parseInt(document.getElementById('tipo').value),
+            frecuenciaPago:       parseInt(document.getElementById('frecuencia').value),
+            montoImpuesto:        parseFloat(document.getElementById('montoImpuesto').value),
+            montoPagado:          parseFloat(document.getElementById('montoPagado').value),
+            deudaAcumulada:       parseFloat(document.getElementById('deudaAcumulada').value),
+            aniosMoroso:          parseInt(document.getElementById('aniosMoroso').value),
             mesesRetrasoPromedio: parseFloat(document.getElementById('mesesRetraso').value),
-            numNotificaciones: parseInt(document.getElementById('numNotificaciones').value),
-            respondioNotificacion: parseInt(document.getElementById('respondio').value),
-            fraccionamiento: parseInt(document.getElementById('fraccion').value),
-            ultimoPago: parseInt(document.getElementById('ultimoPago').value)
+            numNotificaciones:    parseInt(document.getElementById('numNotificaciones').value),
+            respondioNotificacion:parseInt(document.getElementById('respondio').value),
+            fraccionamiento:      parseInt(document.getElementById('fraccion').value),
+            ultimoPago:           parseInt(document.getElementById('ultimoPago').value)
         };
 
         if (datos.montoPagado > datos.montoImpuesto && datos.montoImpuesto > 0) {
@@ -351,16 +391,18 @@
             const res = await response.json();
             if (res.error) throw new Error(res.error);
 
-            const info = res.info;
+            // Mostrar resultado
+            const info = res.info || {};
             const nombre = info.nombre || `Segmento ${res.cluster}`;
-            const desc = info.descripcion || '';
+            const desc   = info.descripcion || '';
             const accion = info.accion || 'Revisar historial.';
-            const caracteristicas = info.caracteristicas || [];
-            let caracHtml = '';
-            if (caracteristicas.length) {
-                caracHtml = '<ul style="text-align:left;display:inline-block;margin:12px 0;">' +
-                    caracteristicas.map(c => `<li style="margin:6px 0;">${c}</li>`).join('') + '</ul>';
-            }
+            const carac  = info.caracteristicas || [];
+            const caracHtml = carac.length
+                ? '<ul style="text-align:left;display:inline-block;margin:12px 0;">'
+                  + carac.map(c => `<li style="margin:6px 0;">${c}</li>`).join('')
+                  + '</ul>'
+                : '';
+
             resultadoDiv.innerHTML = `
                 <h2 style="color:#1f7a46; margin-bottom:8px;">${nombre}</h2>
                 <p style="margin-bottom:8px;">${desc}</p>
@@ -369,13 +411,18 @@
                 <p style="font-size:0.8rem; margin-top:12px;">Cluster #${res.cluster}</p>
             `;
 
-            if (typeof res.pcaX === 'number' && typeof res.pcaY === 'number') {
-                dibujarGrafico(res.cluster, { x: res.pcaX, y: res.pcaY });
-                console.log(`⭐ Estrella colocada en (${res.pcaX}, ${res.pcaY}) - Cluster ${res.cluster}`);
-            } else {
-                console.warn('⚠️ El backend no devolvió pcaX/pcaY. Verifica que pca_params.json esté en resources y tenga media y componentes correctos.');
-                dibujarGrafico(res.cluster, null);
+            // ✅ FIX: redibujar con punto de usuario; el rango se recalcula
+            //         para incluir la estrella aunque esté en los bordes
+            const puntoUsuario = (typeof res.pcaX === 'number' && typeof res.pcaY === 'number')
+                ? { x: res.pcaX, y: res.pcaY }
+                : null;
+
+            if (!puntoUsuario) {
+                console.warn('⚠️ Backend no devolvió pcaX/pcaY. Verifica pca_params.json.');
             }
+
+            dibujarGrafico(res.cluster, puntoUsuario);
+
         } catch (err) {
             resultadoDiv.innerHTML = `<div style="color:#c5221f;">❌ Error: ${err.message}</div>`;
             console.error(err);
