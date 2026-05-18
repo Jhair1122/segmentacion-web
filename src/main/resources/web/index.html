@@ -144,7 +144,9 @@
 
     <div class="button-group">
         <button id="btnSegmentar" class="btn-modern"><i class="fas fa-chart-line"></i> Identificar segmento</button>
-        <button id="btnEjemplo" class="btn-modern btn-secondary"><i class="fas fa-chalkboard-user"></i> Cargar ejemplo</button>
+        <button id="btnEjemploAlto" class="btn-modern btn-secondary"><i class="fas fa-skull-crosswalk"></i> Ejemplo Alto Riesgo</button>
+        <button id="btnEjemploMedio" class="btn-modern btn-secondary"><i class="fas fa-chart-line"></i> Ejemplo Medio Riesgo</button>
+        <button id="btnEjemploBajo" class="btn-modern btn-secondary"><i class="fas fa-check-circle"></i> Ejemplo Bajo Riesgo</button>
     </div>
 
     <div id="resultado" class="result-card">✨ Complete los datos y presione el botón</div>
@@ -158,8 +160,8 @@
 
 <script>
     // === CONFIGURACIÓN VISUAL ===
-    // Colores semánticos: Verde para Cumplidos (cluster 2), los demás según coherencia.
-    // Asignación: cluster 0 -> Morosos (rojo), cluster 1 -> Recuperables (naranja/amarillo), cluster 2 -> Cumplidos (verde), cluster 3 -> Recuperables alto monto (azul)
+    // Colores semánticos: Verde para Cumplidos (cluster 2), Rojo para Morosos (cluster 0),
+    // Amarillo para Recuperables (cluster 1), Azul para Recuperables alto monto (cluster 3)
     const coloresSemanticos = ['#e74c3c', '#f1c40f', '#2ecc71', '#3498db'];
     const nombresSemanticos = [
         'Segmento 0: Morosos',
@@ -169,36 +171,33 @@
     ];
     // Posiciones fijas en cuadrícula (2x2)
     const clusterPositions = [
-        { x: 0.5, y: 0.5 },   // Cluster 0
-        { x: 2.5, y: 0.5 },   // Cluster 1
-        { x: 0.5, y: 2.5 },   // Cluster 2
-        { x: 2.5, y: 2.5 }    // Cluster 3
+        { x: 0.5, y: 0.5 },   // Cluster 0 (Morosos)
+        { x: 2.5, y: 0.5 },   // Cluster 1 (Recuperables)
+        { x: 0.5, y: 2.5 },   // Cluster 2 (Cumplidos)
+        { x: 2.5, y: 2.5 }    // Cluster 3 (Recuperables alto monto)
     ];
     const radio = 0.8;
 
     let graficoDiv = document.getElementById('grafico');
     let resultadoDiv = document.getElementById('resultado');
-    let puntosData = null;        // Datos originales de /puntos
-    let puntosPorCluster = null;  // Almacenará los puntos originales por cluster
+    let puntosPorCluster = null;
 
     // Cargar los puntos históricos (contribuyentes ya segmentados) para mostrarlos dentro de cada círculo
     async function cargarPuntosHistoricos() {
         try {
             const resp = await fetch('/puntos');
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-            puntosData = await resp.json();
+            const puntosData = await resp.json();
             puntosPorCluster = puntosData;
             console.log('Puntos históricos cargados');
-            // Una vez cargados, dibujamos el gráfico (inicialmente sin estrella)
             dibujarGrafico(null);
         } catch (err) {
             console.error('Error cargando puntos históricos:', err);
-            // Si falla, igual dibujamos sin puntos internos
             dibujarGrafico(null);
         }
     }
 
-    // Dibujar gráfico con círculos, puntos históricos dentro (escalados) y estrella opcional
+    // Dibujar gráfico con círculos, puntos históricos dentro y estrella opcional
     function dibujarGrafico(clusterSeleccionado) {
         let shapes = [];
         let traces = [];
@@ -234,15 +233,13 @@
             });
         }
 
-        // 2. Puntos históricos dentro de cada círculo (si existen)
+        // 2. Puntos históricos dentro de cada círculo (escalados)
         if (puntosPorCluster) {
             for (let i = 0; i < clusterPositions.length; i++) {
                 const clusterId = i;
                 const pts = puntosPorCluster[clusterId.toString()];
                 if (pts && pts.x && pts.x.length > 0) {
                     const posCentro = clusterPositions[clusterId];
-                    // Necesitamos escalar los puntos originales (cuyo rango real es grande) para que quepan dentro del círculo.
-                    // Calculamos el rango de los puntos originales de este cluster.
                     const xs = pts.x;
                     const ys = pts.y;
                     const xMin = Math.min(...xs);
@@ -251,12 +248,10 @@
                     const yMax = Math.max(...ys);
                     const xRange = (xMax - xMin) || 1;
                     const yRange = (yMax - yMin) || 1;
-                    // Factor de escala para que los puntos quepan dentro de un radio de ~0.7 (dejando espacio al borde)
                     const scaleX = (radio * 0.9) / xRange;
                     const scaleY = (radio * 0.9) / yRange;
                     const puntosEscaladosX = xs.map(v => posCentro.x + (v - xMin) * scaleX - (radio * 0.9)/2);
                     const puntosEscaladosY = ys.map(v => posCentro.y + (v - yMin) * scaleY - (radio * 0.9)/2);
-                    // Color del cluster (pero con menor opacidad para no saturar)
                     const color = coloresSemanticos[clusterId];
                     traces.push({
                         x: puntosEscaladosX,
@@ -306,7 +301,7 @@
                 zeroline: false,
                 showticklabels: false,
                 range: [-0.5, 3.5],
-                fixedrange: false  // permitir zoom, pero la responsividad global se manejará
+                fixedrange: false
             },
             yaxis: {
                 showgrid: false,
@@ -335,19 +330,39 @@
             responsive: true
         };
         
-        // Usamos Plotly.react para actualizar eficientemente
+        // Usamos Plotly.react para actualizar eficientemente con redimensionado automático
         Plotly.react(graficoDiv, traces, layout, { responsive: true });
     }
 
-    // Reaccionar al cambio de tamaño de la ventana (opcional, Plotly ya es responsive)
+    // Función para redimensionar el gráfico al cambiar el tamaño de la ventana
     window.addEventListener('resize', () => {
         if (graficoDiv && graficoDiv.data) {
             Plotly.relayout(graficoDiv, { autosize: true });
+            // Forzar redibujado para que se ajuste al contenedor
+            Plotly.Plots.resize(graficoDiv);
         }
     });
 
-    // Cargar ejemplo (riesgo medio)
-    function cargarEjemplo() {
+    // === EJEMPLOS ===
+    // Ejemplo Riesgo Alto (Morosos)
+    function cargarEjemploAlto() {
+        document.getElementById('tipo').value = "0";
+        document.getElementById('frecuencia').value = "2";   // Nunca paga
+        document.getElementById('montoImpuesto').value = "8000";
+        document.getElementById('montoPagado').value = "0";
+        document.getElementById('deudaAcumulada').value = "15000";
+        document.getElementById('aniosMoroso').value = "5";
+        document.getElementById('mesesRetraso').value = "12";
+        document.getElementById('numNotificaciones').value = "8";
+        document.getElementById('respondio').value = "false";
+        document.getElementById('fraccion').value = "false";
+        document.getElementById('ultimoPago').value = "2018";
+        resultadoDiv.innerHTML = "📋 Ejemplo de Alto Riesgo cargado. Presione 'Identificar segmento' para ver el resultado.";
+        resultadoDiv.style.borderLeftColor = "#e74c3c";
+    }
+
+    // Ejemplo Riesgo Medio (Recuperables)
+    function cargarEjemploMedio() {
         document.getElementById('tipo').value = "0";
         document.getElementById('frecuencia').value = "1";
         document.getElementById('montoImpuesto').value = "3500";
@@ -359,8 +374,25 @@
         document.getElementById('respondio').value = "false";
         document.getElementById('fraccion').value = "true";
         document.getElementById('ultimoPago').value = "2022";
-        resultadoDiv.innerHTML = "📋 Ejemplo cargado (Riesgo Medio). Presione 'Identificar segmento' para ver el resultado.";
+        resultadoDiv.innerHTML = "📋 Ejemplo de Medio Riesgo cargado. Presione 'Identificar segmento' para ver el resultado.";
         resultadoDiv.style.borderLeftColor = "#f1c40f";
+    }
+
+    // Ejemplo Riesgo Bajo (Cumplidos)
+    function cargarEjemploBajo() {
+        document.getElementById('tipo').value = "0";
+        document.getElementById('frecuencia').value = "0";   // Puntual
+        document.getElementById('montoImpuesto').value = "3500";
+        document.getElementById('montoPagado').value = "3500";
+        document.getElementById('deudaAcumulada').value = "0";
+        document.getElementById('aniosMoroso').value = "0";
+        document.getElementById('mesesRetraso').value = "0";
+        document.getElementById('numNotificaciones').value = "0";
+        document.getElementById('respondio').value = "true";
+        document.getElementById('fraccion').value = "false";
+        document.getElementById('ultimoPago').value = "2025";
+        resultadoDiv.innerHTML = "📋 Ejemplo de Bajo Riesgo cargado. Presione 'Identificar segmento' para ver el resultado.";
+        resultadoDiv.style.borderLeftColor = "#2ecc71";
     }
 
     // Segmentar contribuyente
@@ -421,7 +453,6 @@
                 <p style="font-size:0.8rem; margin-top:12px;">Cluster #${cluster}</p>
             `;
 
-            // Dibujar gráfico con estrella en el cluster correspondiente
             dibujarGrafico(cluster);
         } catch (err) {
             resultadoDiv.innerHTML = `<div style="color:#c5221f;">❌ Error: ${err.message}</div>`;
@@ -432,10 +463,12 @@
         }
     }
 
-    // Inicialización: cargar puntos históricos y dibujar gráfico base
+    // Inicialización
     cargarPuntosHistoricos();
     document.getElementById('btnSegmentar').addEventListener('click', segmentar);
-    document.getElementById('btnEjemplo').addEventListener('click', cargarEjemplo);
+    document.getElementById('btnEjemploAlto').addEventListener('click', cargarEjemploAlto);
+    document.getElementById('btnEjemploMedio').addEventListener('click', cargarEjemploMedio);
+    document.getElementById('btnEjemploBajo').addEventListener('click', cargarEjemploBajo);
 </script>
 </body>
 </html>
