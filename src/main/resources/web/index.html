@@ -103,7 +103,7 @@
             <div class="logo-icon"><i class="fas fa-chart-pie"></i></div>
             <div class="title-text">
                 <h1>Segmentación de Contribuyentes</h1>
-                <p>Municipalidad Distrital de Pangoa · K-Means + PCA · Análisis inteligente</p>
+                <p>Municipalidad Distrital de Pangoa · K-Means + PCA · Elipses de confianza</p>
             </div>
         </div>
         <div style="color:#e8f0e8; font-weight:600;"><i class="fas fa-brain"></i> Clustering con Weka</div>
@@ -138,7 +138,43 @@
     let puntosData = null;
     let graficoDiv = document.getElementById('grafico');
     let resultadoDiv = document.getElementById('resultado');
-    let fixedRanges = null; // almacenar rangos originales de los puntos
+    let fixedRanges = null;
+
+    // Calcular elipse de confianza (95%) a partir de puntos
+    function calcularElipse(puntos) {
+        if (!puntos.x || puntos.x.length < 3) return null;
+        const n = puntos.x.length;
+        let sumX = 0, sumY = 0;
+        for (let i = 0; i < n; i++) {
+            sumX += puntos.x[i];
+            sumY += puntos.y[i];
+        }
+        const cx = sumX / n;
+        const cy = sumY / n;
+        // Matriz de covarianza
+        let covXX = 0, covYY = 0, covXY = 0;
+        for (let i = 0; i < n; i++) {
+            const dx = puntos.x[i] - cx;
+            const dy = puntos.y[i] - cy;
+            covXX += dx * dx;
+            covYY += dy * dy;
+            covXY += dx * dy;
+        }
+        covXX /= (n - 1);
+        covYY /= (n - 1);
+        covXY /= (n - 1);
+        // Para elipse de confianza al 95%: chi2 con 2 grados de libertad ~ 5.991
+        const chi2 = 5.991;
+        // Radio en dirección de los ejes principales
+        const w = Math.sqrt(chi2 * (covXX + covYY + Math.sqrt(Math.pow(covXX - covYY, 2) + 4 * covXY * covXY)) / 2);
+        const h = Math.sqrt(chi2 * (covXX + covYY - Math.sqrt(Math.pow(covXX - covYY, 2) + 4 * covXY * covXY)) / 2);
+        // Ángulo de rotación
+        let theta = 0;
+        if (Math.abs(covXX - covYY) > 1e-6) {
+            theta = 0.5 * Math.atan2(2 * covXY, covXX - covYY);
+        }
+        return { cx, cy, w, h, theta: theta * 180 / Math.PI };
+    }
 
     async function cargarPuntos() {
         try {
@@ -157,7 +193,7 @@
                 resultadoDiv.innerHTML = '<div style="color:#e74c3c;">⚠️ No hay datos de puntos. Verifica puntos_por_cluster.json</div>';
                 return;
             }
-            // Calcular rangos fijos basados en todos los puntos (sin incluir al usuario todavía)
+            // Calcular rangos fijos basados en todos los puntos
             let allX = [], allY = [];
             for (const pts of Object.values(puntosData)) {
                 if (pts.x) allX.push(...pts.x);
@@ -175,7 +211,6 @@
                 x: [xMin - xMargin, xMax + xMargin],
                 y: [yMin - yMargin, yMax + yMargin]
             };
-            // Dibujar el gráfico inicial sin usuario
             dibujarGrafico(null, null);
         } catch (err) {
             console.error(err);
@@ -188,16 +223,37 @@
         const colores = ['#2ecc71', '#f1c40f', '#e74c3c', '#3498db'];
         const nombres = ['Segmento 0: Morosos', 'Segmento 1: Recuperables', 'Segmento 2: Cumplidos', 'Segmento 3: Recuperables alto monto'];
         let traces = [];
+        let shapes = [];
 
-        // 1. Nubes de puntos por cluster
+        // Dibujar elipses de confianza para cada cluster (solo si hay suficientes puntos)
+        for (const [cluster, pts] of Object.entries(puntosData)) {
+            const idx = parseInt(cluster);
+            if (!pts.x || pts.x.length < 3) continue;
+            const elipse = calcularElipse(pts);
+            if (!elipse) continue;
+            const color = colores[idx % colores.length];
+            const lineWidth = (clusterResaltado !== null && idx === clusterResaltado) ? 3 : 1.5;
+            const fillOpacity = 0.15;
+            shapes.push({
+                type: 'ellipse',
+                xref: 'x', yref: 'y',
+                x0: elipse.cx - elipse.w, x1: elipse.cx + elipse.w,
+                y0: elipse.cy - elipse.h, y1: elipse.cy + elipse.h,
+                line: { color: color, width: lineWidth },
+                fillcolor: `rgba(${parseInt(color.slice(1,3),16)}, ${parseInt(color.slice(3,5),16)}, ${parseInt(color.slice(5,7),16)}, ${fillOpacity})`,
+                layer: 'below',
+                opacity: 0.7
+            });
+        }
+
+        // Nubes de puntos
         for (const [cluster, pts] of Object.entries(puntosData)) {
             const idx = parseInt(cluster);
             if (!pts.x || pts.x.length === 0) continue;
             const color = colores[idx % colores.length];
-            // Si este cluster es el resaltado, hacemos los puntos más grandes y opacos
             const isHighlighted = (clusterResaltado !== null && idx === clusterResaltado);
-            const markerSize = isHighlighted ? 7 : 4;
-            const markerOpacity = isHighlighted ? 0.9 : 0.5;
+            const markerSize = isHighlighted ? 8 : 5;
+            const markerOpacity = isHighlighted ? 0.9 : 0.6;
             traces.push({
                 x: pts.x,
                 y: pts.y,
@@ -211,7 +267,7 @@
             });
         }
 
-        // 2. Punto del usuario (estrella)
+        // Punto del usuario
         if (puntoUsuario && typeof puntoUsuario.x === 'number' && typeof puntoUsuario.y === 'number') {
             traces.push({
                 x: [puntoUsuario.x],
@@ -229,50 +285,31 @@
             });
         }
 
-        // 3. Layout con rangos fijos (para que la vista no se mueva)
         const layout = {
-            title: {
-                text: 'Mapa de perfiles de contribuyentes (PCA)',
-                font: { size: 16, color: '#a8dfc0', weight: 'bold' },
-                x: 0.5,
-                xanchor: 'center'
-            },
-            plot_bgcolor: '#0d1f14',
-            paper_bgcolor: '#0d1f14',
+            title: 'Mapa de perfiles de contribuyentes (PCA) - Elipses de confianza 95%',
+            plot_bgcolor: '#0d1f14', paper_bgcolor: '#0d1f14',
             font: { color: '#a8dfc0' },
             xaxis: {
                 title: 'Componente Principal 1',
-                showgrid: true,
-                gridcolor: 'rgba(255,255,255,0.08)',
-                zeroline: false,
-                showticklabels: true,
-                tickfont: { size: 10 },
+                showgrid: true, gridcolor: 'rgba(255,255,255,0.08)',
+                zeroline: false, showticklabels: true, tickfont: { size: 10 },
                 range: fixedRanges ? fixedRanges.x : undefined
             },
             yaxis: {
                 title: 'Componente Principal 2',
-                showgrid: true,
-                gridcolor: 'rgba(255,255,255,0.08)',
-                zeroline: false,
-                showticklabels: true,
-                tickfont: { size: 10 },
+                showgrid: true, gridcolor: 'rgba(255,255,255,0.08)',
+                zeroline: false, showticklabels: true, tickfont: { size: 10 },
                 range: fixedRanges ? fixedRanges.y : undefined,
-                scaleanchor: 'x',
-                scaleratio: 1
+                scaleanchor: 'x', scaleratio: 1
             },
-            height: 550,
-            margin: { l: 60, r: 60, t: 60, b: 60 },
+            height: 550, margin: { l: 60, r: 60, t: 60, b: 60 },
             hovermode: 'closest',
             legend: {
-                bgcolor: 'rgba(0,0,0,0.65)',
-                bordercolor: 'rgba(255,255,255,0.2)',
-                borderwidth: 1,
-                font: { size: 11 },
-                x: 1.02,
-                y: 1,
-                xanchor: 'left',
-                yanchor: 'top'
-            }
+                bgcolor: 'rgba(0,0,0,0.65)', bordercolor: 'rgba(255,255,255,0.2)',
+                borderwidth: 1, font: { size: 11 },
+                x: 1.02, y: 1, xanchor: 'left', yanchor: 'top'
+            },
+            shapes: shapes
         };
         Plotly.newPlot(graficoDiv, traces, layout, { responsive: true });
     }
@@ -332,12 +369,11 @@
                 <p style="font-size:0.8rem; margin-top:12px;">Cluster #${res.cluster}</p>
             `;
 
-            // Mostrar estrella solo si el backend devuelve coordenadas
             if (typeof res.pcaX === 'number' && typeof res.pcaY === 'number') {
                 dibujarGrafico(res.cluster, { x: res.pcaX, y: res.pcaY });
-                console.log(`⭐ Estrella en (${res.pcaX}, ${res.pcaY}) - Cluster ${res.cluster}`);
+                console.log(`⭐ Estrella colocada en (${res.pcaX}, ${res.pcaY}) - Cluster ${res.cluster}`);
             } else {
-                console.warn('⚠️ El backend no devolvió pcaX/pcaY. La estrella no se mostrará.');
+                console.warn('⚠️ El backend no devolvió pcaX/pcaY. Verifica que pca_params.json esté en resources y tenga media y componentes correctos.');
                 dibujarGrafico(res.cluster, null);
             }
         } catch (err) {
