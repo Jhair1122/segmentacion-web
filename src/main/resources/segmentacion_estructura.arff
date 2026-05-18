@@ -1,0 +1,13 @@
+@RELATION segmentacion
+@ATTRIBUTE tipo_contribuyente NUMERIC
+@ATTRIBUTE monto_impuesto NUMERIC
+@ATTRIBUTE monto_pagado NUMERIC
+@ATTRIBUTE deuda_acumulada NUMERIC
+@ATTRIBUTE anios_moroso NUMERIC
+@ATTRIBUTE frecuencia_pago NUMERIC
+@ATTRIBUTE meses_retraso_promedio NUMERIC
+@ATTRIBUTE num_notificaciones NUMERIC
+@ATTRIBUTE respondio_notificacion NUMERIC
+@ATTRIBUTE fraccionamiento NUMERIC
+@DATA
+% datos vacíos

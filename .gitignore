@@ -1,0 +1,19 @@
+# Compiled files
+target/
+dependency-reduced-pom.xml
+
+# Maven local copy (si la tienes dentro del proyecto)
+apache-maven-3.9.16/
+
+# NetBeans
+nbproject/
+.nbproject/
+
+# Logs
+*.log
+*.tmp
+
+# IDE
+.idea/
+*.iml
+.vscode/

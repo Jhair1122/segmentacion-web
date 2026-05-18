@@ -1,0 +1,42 @@
+{
+  "0": {
+    "nombre": "Segmento A — Contribuyentes Morosos",
+    "descripcion": "Contribuyentes con incumplimiento reiterado y deuda acumulada elevada.",
+    "accion": "Iniciar proceso de cobranza coactiva.",
+    "caracteristicas": [
+      "Deuda promedio: S/. 63.17",
+      "Sin pagos registrados o muy escasos",
+      "Frecuencia de pago predominante: Nunca paga"
+    ]
+  },
+  "1": {
+    "nombre": "Segmento B — Contribuyentes Recuperables",
+    "descripcion": "Contribuyentes con deuda pero que han realizado pagos parciales.",
+    "accion": "Ofrecer plan de fraccionamiento y orientación tributaria.",
+    "caracteristicas": [
+      "Deuda promedio: S/. 65.71",
+      "Han realizado pagos parciales",
+      "Potencial de regularización"
+    ]
+  },
+  "2": {
+    "nombre": "Segmento C — Contribuyentes Cumplidos",
+    "descripcion": "Contribuyentes con historial regular de pagos y deuda mínima o nula.",
+    "accion": "Mantener seguimiento rutinario.",
+    "caracteristicas": [
+      "Deuda acumulada baja o nula",
+      "Pagan puntualmente o con poco retraso",
+      "Sin años prolongados de morosidad"
+    ]
+  },
+  "3": {
+    "nombre": "Segmento D — Contribuyentes Recuperables",
+    "descripcion": "Contribuyentes con deuda pero que han realizado pagos parciales.",
+    "accion": "Ofrecer plan de fraccionamiento y orientación tributaria.",
+    "caracteristicas": [
+      "Deuda promedio: S/. 1766.83",
+      "Han realizado pagos parciales",
+      "Potencial de regularización"
+    ]
+  }
+}
