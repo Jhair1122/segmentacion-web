@@ -168,6 +168,16 @@
             .button-group { margin: 0.5rem 1rem; }
             .calibracion-msg { margin: 0 1rem 1rem; }
         }
+        .loader-ring {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -199,7 +209,7 @@
 
         <div class="button-group">
             <button id="btnSegmentar" class="btn-modern"><i class="fas fa-chart-line"></i> Identificar segmento</button>
-            <button id="btnCopiar" class="btn-modern btn-secondary" style="background: linear-gradient(95deg, #3b5e3b, #2d6a4f);"><i class="fas fa-copy"></i> Copiar valores actuales</button>
+            <button id="btnCopiar" class="btn-modern btn-secondary"><i class="fas fa-copy"></i> Copiar valores actuales</button>
         </div>
         <div class="button-group">
             <button id="btnEjemploAlto" class="btn-modern btn-secondary"><i class="fas fa-skull-crosswalk"></i> Ejemplo Alto Riesgo</button>
@@ -208,28 +218,26 @@
         </div>
 
         <div id="calibracionMsg" class="calibracion-msg">
-            💡 <strong>Calibración de ejemplos:</strong> Prueba valores manualmente, cuando obtengas el segmento deseado, haz clic en <strong>"Copiar valores actuales"</strong> y reemplaza los números en las funciones de ejemplo (ver código fuente).
+            💡 <strong>Calibración de ejemplos:</strong> Prueba valores manualmente. Cuando obtengas el segmento deseado (Moroso, Recuperable o Cumplido), haz clic en <strong>"Copiar valores actuales"</strong>. Luego, abre el código fuente, busca las funciones <code>cargarEjemploAlto</code>, <code>cargarEjemploMedio</code> o <code>cargarEjemploBajo</code> y reemplaza los números dentro del objeto <code>valores</code> por los que copiaste.
         </div>
 
         <div id="resultado" class="result-card">✨ Complete los datos y presione el botón</div>
         <div id="grafico" class="graph-container"></div>
         <div class="footer">
             <span><i class="fas fa-microchip"></i> Modelo Weka · K-Means</span>
-            <span><i class="fas fa-chart-pie"></i> Segmentación en 4 grupos</span>
+            <span><i class="fas fa-chart-pie"></i> Segmentación en 3 grupos</span>
             <span><i class="fas fa-shield-alt"></i> Datos oficiales · Pangoa</span>
         </div>
     </div>
 
     <script>
         // === CONFIGURACIÓN VISUAL (3 clusters) ===
-        // Colores semánticos: Rojo (Morosos), Amarillo (Recuperables), Verde (Cumplidos)
         const coloresSemanticos = ['#e74c3c', '#f1c40f', '#2ecc71'];
         const nombresSemanticos = [
             'Segmento 0: Morosos',
             'Segmento 1: Recuperables',
             'Segmento 2: Cumplidos'
         ];
-        // Posiciones fijas en fila horizontal centrada (3 círculos)
         const clusterPositions = [
             { x: 1.0, y: 1.5 },   // Morosos
             { x: 2.5, y: 1.5 },   // Recuperables
@@ -259,13 +267,11 @@
             }
         }
 
-        // Dibujar gráfico con 3 círculos, puntos históricos y estrella
         function dibujarGrafico(clusterSeleccionado) {
             if (!puntosPorCluster) return;
             let shapes = [];
             let traces = [];
 
-            // 1. Círculos
             for (let i = 0; i < clusterPositions.length; i++) {
                 const pos = clusterPositions[i];
                 const color = coloresSemanticos[i];
@@ -283,7 +289,6 @@
                     layer: 'below'
                 });
 
-                // Etiqueta central
                 traces.push({
                     x: [pos.x],
                     y: [pos.y],
@@ -296,7 +301,6 @@
                 });
             }
 
-            // 2. Puntos históricos dentro de cada círculo (escalados)
             if (puntosPorCluster) {
                 for (let i = 0; i < clusterPositions.length; i++) {
                     const pts = puntosPorCluster[i];
@@ -329,7 +333,6 @@
                 }
             }
 
-            // 3. Estrella del contribuyente actual
             if (clusterSeleccionado !== null && clusterSeleccionado >= 0 && clusterSeleccionado < clusterPositions.length) {
                 const posEstrella = clusterPositions[clusterSeleccionado];
                 traces.push({
@@ -349,53 +352,17 @@
             }
 
             const layout = {
-                title: {
-                    text: 'Grupos de contribuyentes · Segmentación por K-Means',
-                    font: { size: 18, color: '#a8dfc0', weight: 'bold' },
-                    x: 0.5,
-                    xanchor: 'center'
-                },
-                plot_bgcolor: '#0d1f14',
-                paper_bgcolor: '#0d1f14',
-                font: { color: '#a8dfc0' },
-                xaxis: {
-                    showgrid: false,
-                    zeroline: false,
-                    showticklabels: false,
-                    range: [0, 5],
-                    fixedrange: false
-                },
-                yaxis: {
-                    showgrid: false,
-                    zeroline: false,
-                    showticklabels: false,
-                    range: [0.2, 2.8],
-                    scaleanchor: 'x',
-                    scaleratio: 1,
-                    fixedrange: false
-                },
-                height: 520,
-                margin: { l: 30, r: 30, t: 60, b: 30 },
-                hovermode: 'closest',
-                legend: {
-                    bgcolor: 'rgba(0,0,0,0.65)',
-                    bordercolor: 'rgba(255,255,255,0.2)',
-                    borderwidth: 1,
-                    font: { size: 11 },
-                    x: 1.02,
-                    y: 1,
-                    xanchor: 'left',
-                    yanchor: 'top'
-                },
-                shapes: shapes,
-                autosize: true,
-                responsive: true
+                title: { text: 'Grupos de contribuyentes · Segmentación por K-Means', font: { size: 18, color: '#a8dfc0', weight: 'bold' }, x: 0.5, xanchor: 'center' },
+                plot_bgcolor: '#0d1f14', paper_bgcolor: '#0d1f14', font: { color: '#a8dfc0' },
+                xaxis: { showgrid: false, zeroline: false, showticklabels: false, range: [0, 5], fixedrange: false },
+                yaxis: { showgrid: false, zeroline: false, showticklabels: false, range: [0.2, 2.8], scaleanchor: 'x', scaleratio: 1, fixedrange: false },
+                height: 520, margin: { l: 30, r: 30, t: 60, b: 30 }, hovermode: 'closest',
+                legend: { bgcolor: 'rgba(0,0,0,0.65)', bordercolor: 'rgba(255,255,255,0.2)', borderwidth: 1, font: { size: 11 }, x: 1.02, y: 1, xanchor: 'left', yanchor: 'top' },
+                shapes: shapes, autosize: true, responsive: true
             };
-            
             Plotly.react(graficoDiv, traces, layout, { responsive: true });
         }
 
-        // Redimensionar gráfico al cambiar tamaño de ventana
         window.addEventListener('resize', () => {
             if (graficoDiv && graficoDiv.data) {
                 Plotly.relayout(graficoDiv, { autosize: true });
@@ -403,7 +370,7 @@
             }
         });
 
-        // --- Función para obtener los valores actuales del formulario ---
+        // --- Función para obtener valores actuales ---
         function obtenerValoresActuales() {
             return {
                 tipoContribuyente: parseInt(document.getElementById('tipo').value),
@@ -435,23 +402,21 @@
             });
         }
 
-        // --- Ejemplos (valores de muestra - REEMPLAZAR CON TUS PRUEBAS) ---
-        // IMPORTANTE: Usa el botón "Copiar valores actuales" después de obtener el cluster deseado
-        // y luego pega el objeto JSON aquí, reemplazando los números.
+        // --- EJEMPLOS (valores ajustados según tus pruebas) ---
+        // Alto Riesgo → Morosos (cluster 0). Valores que dieron Moroso en tu captura (meses 7, deuda 1000, etc.)
         function cargarEjemploAlto() {
-            // *** REEMPLAZA ESTOS VALORES con los que generan cluster 0 (Morosos) ***
             const valores = {
                 tipoContribuyente: 0,
-                frecuenciaPago: 2,
-                montoImpuesto: 8000,
+                frecuenciaPago: 2,          // Nunca paga
+                montoImpuesto: 1000,
                 montoPagado: 0,
-                deudaAcumulada: 15000,
+                deudaAcumulada: 1000,
                 aniosMoroso: 5,
-                mesesRetrasoPromedio: 12,
-                numNotificaciones: 8,
+                mesesRetrasoPromedio: 7,    // ← 7 meses → Moroso
+                numNotificaciones: 4,
                 respondioNotificacion: 0,
                 fraccionamiento: 0,
-                ultimoPago: 2018
+                ultimoPago: 2021
             };
             document.getElementById('tipo').value = valores.tipoContribuyente;
             document.getElementById('frecuencia').value = valores.frecuenciaPago;
@@ -464,24 +429,24 @@
             document.getElementById('respondio').value = valores.respondioNotificacion;
             document.getElementById('fraccion').value = valores.fraccionamiento;
             document.getElementById('ultimoPago').value = valores.ultimoPago;
-            resultadoDiv.innerHTML = "📋 Ejemplo de Alto Riesgo cargado. Presione 'Identificar segmento'.";
+            resultadoDiv.innerHTML = "📋 Ejemplo de Alto Riesgo (Morosos) cargado. Presione 'Identificar segmento'.";
             resultadoDiv.style.borderLeftColor = "#e74c3c";
         }
 
+        // Medio Riesgo → Recuperables (cluster 1). Valores que dieron Recuperable (meses 8, mismo resto)
         function cargarEjemploMedio() {
-            // *** REEMPLAZA ESTOS VALORES con los que generan cluster 1 (Recuperables) ***
             const valores = {
                 tipoContribuyente: 0,
-                frecuenciaPago: 1,
-                montoImpuesto: 3500,
-                montoPagado: 1800,
-                deudaAcumulada: 2200,
-                aniosMoroso: 2,
-                mesesRetrasoPromedio: 4,
-                numNotificaciones: 3,
+                frecuenciaPago: 2,          // Nunca paga
+                montoImpuesto: 1000,
+                montoPagado: 0,
+                deudaAcumulada: 1000,
+                aniosMoroso: 5,
+                mesesRetrasoPromedio: 8,    // ← 8 meses → Recuperable
+                numNotificaciones: 4,
                 respondioNotificacion: 0,
-                fraccionamiento: 1,
-                ultimoPago: 2022
+                fraccionamiento: 0,
+                ultimoPago: 2021
             };
             document.getElementById('tipo').value = valores.tipoContribuyente;
             document.getElementById('frecuencia').value = valores.frecuenciaPago;
@@ -494,15 +459,15 @@
             document.getElementById('respondio').value = valores.respondioNotificacion;
             document.getElementById('fraccion').value = valores.fraccionamiento;
             document.getElementById('ultimoPago').value = valores.ultimoPago;
-            resultadoDiv.innerHTML = "📋 Ejemplo de Medio Riesgo cargado. Presione 'Identificar segmento'.";
+            resultadoDiv.innerHTML = "📋 Ejemplo de Medio Riesgo (Recuperables) cargado. Presione 'Identificar segmento'.";
             resultadoDiv.style.borderLeftColor = "#f1c40f";
         }
 
+        // Bajo Riesgo → Cumplidos (cluster 2). Valores típicos de bajo riesgo
         function cargarEjemploBajo() {
-            // *** REEMPLAZA ESTOS VALORES con los que generan cluster 2 (Cumplidos) ***
             const valores = {
                 tipoContribuyente: 0,
-                frecuenciaPago: 0,
+                frecuenciaPago: 0,          // Puntual
                 montoImpuesto: 3500,
                 montoPagado: 3500,
                 deudaAcumulada: 0,
@@ -524,7 +489,7 @@
             document.getElementById('respondio').value = valores.respondioNotificacion;
             document.getElementById('fraccion').value = valores.fraccionamiento;
             document.getElementById('ultimoPago').value = valores.ultimoPago;
-            resultadoDiv.innerHTML = "📋 Ejemplo de Bajo Riesgo cargado. Presione 'Identificar segmento'.";
+            resultadoDiv.innerHTML = "📋 Ejemplo de Bajo Riesgo (Cumplidos) cargado. Presione 'Identificar segmento'.";
             resultadoDiv.style.borderLeftColor = "#2ecc71";
         }
 
@@ -576,7 +541,6 @@
                 `;
                 resultadoDiv.style.borderLeftColor = colorTexto;
 
-                // Mostrar en consola los valores que se enviaron para facilitar la calibración
                 console.log('=== VALORES ENVIADOS ===');
                 console.log(JSON.stringify(datos, null, 2));
                 console.log(`=== CLUSTER OBTENIDO: ${cluster} (${nombresSemanticos[cluster] || 'desconocido'}) ===`);
