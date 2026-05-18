@@ -8,21 +8,51 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.plot.ly/plotly-2.27.1.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Canvas de partículas de fondo */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
             background: linear-gradient(135deg, #e0f0e0 0%, #c8e0c8 100%);
+        }
+
+        body {
             font-family: 'Inter', sans-serif;
             padding: 2rem 1.5rem;
+            min-height: 100vh;
+            position: relative;
         }
+
+        /* Animación de entrada para la tarjeta */
+        @keyframes fadeInScale {
+            0% { opacity: 0; transform: scale(0.96); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
         .glass-card {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
-            background: rgba(255,255,255,0.96);
-            backdrop-filter: blur(2px);
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(4px);
             border-radius: 2rem;
-            box-shadow: 0 25px 45px -12px rgba(0,0,0,0.3);
+            box-shadow: 0 30px 50px -20px rgba(0,0,0,0.3);
             overflow: hidden;
+            animation: fadeInScale 0.5s ease-out;
+            transition: box-shadow 0.3s;
         }
+        .glass-card:hover {
+            box-shadow: 0 35px 55px -20px rgba(0,0,0,0.35);
+        }
+
         .header {
             background: linear-gradient(105deg, #0e4b2c 0%, #1a6e3a 100%);
             padding: 1.2rem 2rem;
@@ -30,19 +60,27 @@
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
+            gap: 1rem;
             border-bottom: 3px solid #ffd966;
         }
         .logo-area { display: flex; align-items: center; gap: 1rem; }
         .logo-icon {
-            background: #f5f5dc; border-radius: 50%; width: 55px; height: 55px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 2rem; color: #0e4b2c;
+            background: #f5f5dc;
+            border-radius: 50%;
+            width: 55px;
+            height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #0e4b2c;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             transition: transform 0.2s;
         }
         .logo-icon:hover { transform: scale(1.05); }
         .title-text h1 { color: white; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.3px; }
         .title-text p { color: #d4ecd4; font-size: 0.9rem; font-weight: 500; }
+
         .form-grid {
             padding: 1.5rem 2rem;
             display: grid;
@@ -71,6 +109,8 @@
             box-shadow: 0 0 0 3px rgba(45,106,79,0.2);
             transform: scale(1.01);
         }
+
+        /* Botones con efecto shine y ripple */
         .btn-modern {
             background: linear-gradient(95deg, #14532d, #1f7a46);
             border: none;
@@ -118,6 +158,8 @@
             flex-wrap: wrap;
             margin: 0.5rem 2rem 0;
         }
+
+        /* Tarjeta de resultado */
         .result-card {
             margin: 0 2rem 1rem;
             padding: 1.5rem;
@@ -132,6 +174,7 @@
             transform: translateY(-4px);
             box-shadow: 0 12px 24px rgba(0,0,0,0.08);
         }
+
         .graph-container {
             margin: 1rem 2rem 2rem;
             padding: 1rem;
@@ -139,6 +182,7 @@
             border-radius: 1.5rem;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.1);
         }
+
         .footer {
             background: #eaf4ea;
             padding: 1rem;
@@ -151,23 +195,16 @@
             gap: 1.5rem;
             flex-wrap: wrap;
         }
-        .calibracion-msg {
-            margin: 0 2rem 1rem;
-            padding: 0.8rem;
-            background: #fff3cd;
-            border-left: 5px solid #f1c40f;
-            border-radius: 0.8rem;
-            font-size: 0.85rem;
-            color: #856404;
-        }
+
         @media (max-width: 720px) {
             body { padding: 1rem; }
             .btn-modern { width: calc(100% - 2rem); margin: 0.5rem 1rem; }
             .form-grid { padding: 1rem; }
             .graph-container { margin: 1rem; }
             .button-group { margin: 0.5rem 1rem; }
-            .calibracion-msg { margin: 0 1rem 1rem; }
         }
+
+        /* Loader personalizado */
         .loader-ring {
             display: inline-block;
             width: 20px;
@@ -181,6 +218,7 @@
     </style>
 </head>
 <body>
+    <canvas id="particles-canvas"></canvas>
     <div class="glass-card">
         <div class="header">
             <div class="logo-area">
@@ -209,16 +247,9 @@
 
         <div class="button-group">
             <button id="btnSegmentar" class="btn-modern"><i class="fas fa-chart-line"></i> Identificar segmento</button>
-            <button id="btnCopiar" class="btn-modern btn-secondary"><i class="fas fa-copy"></i> Copiar valores actuales</button>
-        </div>
-        <div class="button-group">
             <button id="btnEjemploAlto" class="btn-modern btn-secondary"><i class="fas fa-skull-crosswalk"></i> Ejemplo Alto Riesgo</button>
             <button id="btnEjemploMedio" class="btn-modern btn-secondary"><i class="fas fa-chart-line"></i> Ejemplo Medio Riesgo</button>
             <button id="btnEjemploBajo" class="btn-modern btn-secondary"><i class="fas fa-check-circle"></i> Ejemplo Bajo Riesgo</button>
-        </div>
-
-        <div id="calibracionMsg" class="calibracion-msg">
-            💡 <strong>Calibración de ejemplos:</strong> Prueba valores manualmente. Cuando obtengas el segmento deseado (Moroso, Recuperable o Cumplido), haz clic en <strong>"Copiar valores actuales"</strong>. Luego, abre el código fuente, busca las funciones <code>cargarEjemploAlto</code>, <code>cargarEjemploMedio</code> o <code>cargarEjemploBajo</code> y reemplaza los números dentro del objeto <code>valores</code> por los que copiaste.
         </div>
 
         <div id="resultado" class="result-card">✨ Complete los datos y presione el botón</div>
@@ -232,12 +263,14 @@
 
     <script>
         // === CONFIGURACIÓN VISUAL (3 clusters) ===
+        // Colores semánticos: Rojo (Morosos), Amarillo (Recuperables), Verde (Cumplidos)
         const coloresSemanticos = ['#e74c3c', '#f1c40f', '#2ecc71'];
         const nombresSemanticos = [
             'Segmento 0: Morosos',
             'Segmento 1: Recuperables',
             'Segmento 2: Cumplidos'
         ];
+        // Posiciones fijas en fila horizontal centrada (3 círculos)
         const clusterPositions = [
             { x: 1.0, y: 1.5 },   // Morosos
             { x: 2.5, y: 1.5 },   // Recuperables
@@ -249,12 +282,59 @@
         let resultadoDiv = document.getElementById('resultado');
         let puntosPorCluster = null;
 
+        // --- Partículas de fondo (canvas) ---
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        function createParticles() {
+            particles = [];
+            for (let i = 0; i < 60; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 2.5 + 1,
+                    alpha: Math.random() * 0.4 + 0.1,
+                    speedX: (Math.random() - 0.5) * 0.3,
+                    speedY: (Math.random() - 0.5) * 0.2,
+                    color: `rgba(45, 106, 79, ${Math.random() * 0.3 + 0.1})`
+                });
+            }
+        }
+        function drawParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let p of particles) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+                p.x += p.speedX;
+                p.y += p.speedY;
+                if (p.x < 0) p.x = canvas.width;
+                if (p.x > canvas.width) p.x = 0;
+                if (p.y < 0) p.y = canvas.height;
+                if (p.y > canvas.height) p.y = 0;
+            }
+            requestAnimationFrame(drawParticles);
+        }
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            createParticles();
+        });
+        resizeCanvas();
+        createParticles();
+        drawParticles();
+
         // --- Cargar puntos históricos ---
         async function cargarPuntosHistoricos() {
             try {
                 const resp = await fetch('/puntos');
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                 const puntosData = await resp.json();
+                // Solo nos interesan los clusters 0,1,2 (ignoramos el 3 si existe)
                 puntosPorCluster = {};
                 for (let i = 0; i <= 2; i++) {
                     puntosPorCluster[i] = puntosData[i] || { x: [], y: [] };
@@ -267,11 +347,12 @@
             }
         }
 
+        // Dibujar gráfico con 3 círculos, puntos históricos y estrella
         function dibujarGrafico(clusterSeleccionado) {
-            if (!puntosPorCluster) return;
             let shapes = [];
             let traces = [];
 
+            // 1. Círculos
             for (let i = 0; i < clusterPositions.length; i++) {
                 const pos = clusterPositions[i];
                 const color = coloresSemanticos[i];
@@ -289,6 +370,7 @@
                     layer: 'below'
                 });
 
+                // Etiqueta central
                 traces.push({
                     x: [pos.x],
                     y: [pos.y],
@@ -301,6 +383,7 @@
                 });
             }
 
+            // 2. Puntos históricos dentro de cada círculo (escalados)
             if (puntosPorCluster) {
                 for (let i = 0; i < clusterPositions.length; i++) {
                     const pts = puntosPorCluster[i];
@@ -333,6 +416,7 @@
                 }
             }
 
+            // 3. Estrella del contribuyente actual
             if (clusterSeleccionado !== null && clusterSeleccionado >= 0 && clusterSeleccionado < clusterPositions.length) {
                 const posEstrella = clusterPositions[clusterSeleccionado];
                 traces.push({
@@ -352,17 +436,53 @@
             }
 
             const layout = {
-                title: { text: 'Grupos de contribuyentes · Segmentación por K-Means', font: { size: 18, color: '#a8dfc0', weight: 'bold' }, x: 0.5, xanchor: 'center' },
-                plot_bgcolor: '#0d1f14', paper_bgcolor: '#0d1f14', font: { color: '#a8dfc0' },
-                xaxis: { showgrid: false, zeroline: false, showticklabels: false, range: [0, 5], fixedrange: false },
-                yaxis: { showgrid: false, zeroline: false, showticklabels: false, range: [0.2, 2.8], scaleanchor: 'x', scaleratio: 1, fixedrange: false },
-                height: 520, margin: { l: 30, r: 30, t: 60, b: 30 }, hovermode: 'closest',
-                legend: { bgcolor: 'rgba(0,0,0,0.65)', bordercolor: 'rgba(255,255,255,0.2)', borderwidth: 1, font: { size: 11 }, x: 1.02, y: 1, xanchor: 'left', yanchor: 'top' },
-                shapes: shapes, autosize: true, responsive: true
+                title: {
+                    text: 'Grupos de contribuyentes · Segmentación por K-Means',
+                    font: { size: 18, color: '#a8dfc0', weight: 'bold' },
+                    x: 0.5,
+                    xanchor: 'center'
+                },
+                plot_bgcolor: '#0d1f14',
+                paper_bgcolor: '#0d1f14',
+                font: { color: '#a8dfc0' },
+                xaxis: {
+                    showgrid: false,
+                    zeroline: false,
+                    showticklabels: false,
+                    range: [0, 5],
+                    fixedrange: false
+                },
+                yaxis: {
+                    showgrid: false,
+                    zeroline: false,
+                    showticklabels: false,
+                    range: [0.2, 2.8],
+                    scaleanchor: 'x',
+                    scaleratio: 1,
+                    fixedrange: false
+                },
+                height: 520,
+                margin: { l: 30, r: 30, t: 60, b: 30 },
+                hovermode: 'closest',
+                legend: {
+                    bgcolor: 'rgba(0,0,0,0.65)',
+                    bordercolor: 'rgba(255,255,255,0.2)',
+                    borderwidth: 1,
+                    font: { size: 11 },
+                    x: 1.02,
+                    y: 1,
+                    xanchor: 'left',
+                    yanchor: 'top'
+                },
+                shapes: shapes,
+                autosize: true,
+                responsive: true
             };
+            
             Plotly.react(graficoDiv, traces, layout, { responsive: true });
         }
 
+        // Redimensionar gráfico al cambiar tamaño de ventana
         window.addEventListener('resize', () => {
             if (graficoDiv && graficoDiv.data) {
                 Plotly.relayout(graficoDiv, { autosize: true });
@@ -370,9 +490,66 @@
             }
         });
 
-        // --- Función para obtener valores actuales ---
-        function obtenerValoresActuales() {
-            return {
+        // --- Ejemplos con valores INVERTIDOS entre Alto y Medio Riesgo ---
+        // AHORA: "Ejemplo Alto Riesgo" cargará los valores que antes daban Recuperable (cluster 1)
+        function cargarEjemploAlto() {
+            document.getElementById('tipo').value = "0";
+            document.getElementById('frecuencia').value = "1";   // Con retraso (antes era 2)
+            document.getElementById('montoImpuesto').value = "3500";
+            document.getElementById('montoPagado').value = "1800";
+            document.getElementById('deudaAcumulada').value = "2200";
+            document.getElementById('aniosMoroso').value = "2";
+            document.getElementById('mesesRetraso').value = "4";
+            document.getElementById('numNotificaciones').value = "3";
+            document.getElementById('respondio').value = "0";
+            document.getElementById('fraccion').value = "1";
+            document.getElementById('ultimoPago').value = "2022";
+            resultadoDiv.innerHTML = "📋 Ejemplo de Alto Riesgo cargado. Presione 'Identificar segmento' para ver el resultado.";
+            resultadoDiv.style.borderLeftColor = "#e74c3c";
+        }
+
+        // "Ejemplo Medio Riesgo" cargará los valores que antes daban Moroso (cluster 0)
+        function cargarEjemploMedio() {
+            document.getElementById('tipo').value = "0";
+            document.getElementById('frecuencia').value = "2";   // Nunca paga
+            document.getElementById('montoImpuesto').value = "8000";
+            document.getElementById('montoPagado').value = "0";
+            document.getElementById('deudaAcumulada').value = "15000";
+            document.getElementById('aniosMoroso').value = "5";
+            document.getElementById('mesesRetraso').value = "12";
+            document.getElementById('numNotificaciones').value = "8";
+            document.getElementById('respondio').value = "0";
+            document.getElementById('fraccion').value = "0";
+            document.getElementById('ultimoPago').value = "2018";
+            resultadoDiv.innerHTML = "📋 Ejemplo de Medio Riesgo cargado. Presione 'Identificar segmento' para ver el resultado.";
+            resultadoDiv.style.borderLeftColor = "#f1c40f";
+        }
+
+        // Ejemplo Bajo Riesgo (sin cambios)
+        function cargarEjemploBajo() {
+            document.getElementById('tipo').value = "0";
+            document.getElementById('frecuencia').value = "0";
+            document.getElementById('montoImpuesto').value = "3500";
+            document.getElementById('montoPagado').value = "3500";
+            document.getElementById('deudaAcumulada').value = "0";
+            document.getElementById('aniosMoroso').value = "0";
+            document.getElementById('mesesRetraso').value = "0";
+            document.getElementById('numNotificaciones').value = "0";
+            document.getElementById('respondio').value = "1";
+            document.getElementById('fraccion').value = "0";
+            document.getElementById('ultimoPago').value = "2025";
+            resultadoDiv.innerHTML = "📋 Ejemplo de Bajo Riesgo cargado. Presione 'Identificar segmento' para ver el resultado.";
+            resultadoDiv.style.borderLeftColor = "#2ecc71";
+        }
+
+        // --- Segmentar contribuyente ---
+        async function segmentar() {
+            const btn = document.getElementById('btnSegmentar');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<div class="loader-ring"></div> Procesando...';
+            btn.disabled = true;
+
+            const datos = {
                 tipoContribuyente: parseInt(document.getElementById('tipo').value),
                 frecuenciaPago: parseInt(document.getElementById('frecuencia').value),
                 montoImpuesto: parseFloat(document.getElementById('montoImpuesto').value),
@@ -385,122 +562,6 @@
                 fraccionamiento: parseInt(document.getElementById('fraccion').value),
                 ultimoPago: parseInt(document.getElementById('ultimoPago').value)
             };
-        }
-
-        // --- Copiar valores al portapapeles ---
-        function copiarValores() {
-            const valores = obtenerValoresActuales();
-            const texto = JSON.stringify(valores, null, 2);
-            navigator.clipboard.writeText(texto).then(() => {
-                const msgDiv = document.getElementById('calibracionMsg');
-                const originalHTML = msgDiv.innerHTML;
-                msgDiv.innerHTML = '✅ ¡Valores copiados al portapapeles! Pégalos en las funciones de ejemplo del código.';
-                setTimeout(() => { msgDiv.innerHTML = originalHTML; }, 3000);
-            }).catch(err => {
-                console.error('Error al copiar: ', err);
-                alert('No se pudo copiar. Copia manualmente desde la consola.');
-            });
-        }
-
-        // --- EJEMPLOS: valores invertidos entre Alto y Medio Riesgo ---
-        // Alto Riesgo usará los valores que antes daban Recuperable (cluster 1)
-        function cargarEjemploAlto() {
-            const valores = {
-                tipoContribuyente: 0,
-                frecuenciaPago: 2,          // Nunca paga
-                montoImpuesto: 1000,
-                montoPagado: 0,
-                deudaAcumulada: 1000,
-                aniosMoroso: 5,
-                mesesRetrasoPromedio: 8,    // ← 8 meses → Recuperable (inversión)
-                numNotificaciones: 4,
-                respondioNotificacion: 0,
-                fraccionamiento: 0,
-                ultimoPago: 2021
-            };
-            document.getElementById('tipo').value = valores.tipoContribuyente;
-            document.getElementById('frecuencia').value = valores.frecuenciaPago;
-            document.getElementById('montoImpuesto').value = valores.montoImpuesto;
-            document.getElementById('montoPagado').value = valores.montoPagado;
-            document.getElementById('deudaAcumulada').value = valores.deudaAcumulada;
-            document.getElementById('aniosMoroso').value = valores.aniosMoroso;
-            document.getElementById('mesesRetraso').value = valores.mesesRetrasoPromedio;
-            document.getElementById('numNotificaciones').value = valores.numNotificaciones;
-            document.getElementById('respondio').value = valores.respondioNotificacion;
-            document.getElementById('fraccion').value = valores.fraccionamiento;
-            document.getElementById('ultimoPago').value = valores.ultimoPago;
-            resultadoDiv.innerHTML = "📋 Ejemplo de Alto Riesgo cargado. Presione 'Identificar segmento'.";
-            resultadoDiv.style.borderLeftColor = "#e74c3c";
-        }
-
-        // Medio Riesgo usará los valores que antes daban Moroso (cluster 0)
-        function cargarEjemploMedio() {
-            const valores = {
-                tipoContribuyente: 0,
-                frecuenciaPago: 2,          // Nunca paga
-                montoImpuesto: 1000,
-                montoPagado: 0,
-                deudaAcumulada: 1000,
-                aniosMoroso: 5,
-                mesesRetrasoPromedio: 7,    // ← 7 meses → Moroso (inversión)
-                numNotificaciones: 4,
-                respondioNotificacion: 0,
-                fraccionamiento: 0,
-                ultimoPago: 2021
-            };
-            document.getElementById('tipo').value = valores.tipoContribuyente;
-            document.getElementById('frecuencia').value = valores.frecuenciaPago;
-            document.getElementById('montoImpuesto').value = valores.montoImpuesto;
-            document.getElementById('montoPagado').value = valores.montoPagado;
-            document.getElementById('deudaAcumulada').value = valores.deudaAcumulada;
-            document.getElementById('aniosMoroso').value = valores.aniosMoroso;
-            document.getElementById('mesesRetraso').value = valores.mesesRetrasoPromedio;
-            document.getElementById('numNotificaciones').value = valores.numNotificaciones;
-            document.getElementById('respondio').value = valores.respondioNotificacion;
-            document.getElementById('fraccion').value = valores.fraccionamiento;
-            document.getElementById('ultimoPago').value = valores.ultimoPago;
-            resultadoDiv.innerHTML = "📋 Ejemplo de Medio Riesgo cargado. Presione 'Identificar segmento'.";
-            resultadoDiv.style.borderLeftColor = "#f1c40f";
-        }
-
-        // Bajo Riesgo (sin cambios)
-        function cargarEjemploBajo() {
-            const valores = {
-                tipoContribuyente: 0,
-                frecuenciaPago: 0,          // Puntual
-                montoImpuesto: 3500,
-                montoPagado: 3500,
-                deudaAcumulada: 0,
-                aniosMoroso: 0,
-                mesesRetrasoPromedio: 0,
-                numNotificaciones: 0,
-                respondioNotificacion: 1,
-                fraccionamiento: 0,
-                ultimoPago: 2025
-            };
-            document.getElementById('tipo').value = valores.tipoContribuyente;
-            document.getElementById('frecuencia').value = valores.frecuenciaPago;
-            document.getElementById('montoImpuesto').value = valores.montoImpuesto;
-            document.getElementById('montoPagado').value = valores.montoPagado;
-            document.getElementById('deudaAcumulada').value = valores.deudaAcumulada;
-            document.getElementById('aniosMoroso').value = valores.aniosMoroso;
-            document.getElementById('mesesRetraso').value = valores.mesesRetrasoPromedio;
-            document.getElementById('numNotificaciones').value = valores.numNotificaciones;
-            document.getElementById('respondio').value = valores.respondioNotificacion;
-            document.getElementById('fraccion').value = valores.fraccionamiento;
-            document.getElementById('ultimoPago').value = valores.ultimoPago;
-            resultadoDiv.innerHTML = "📋 Ejemplo de Bajo Riesgo cargado. Presione 'Identificar segmento'.";
-            resultadoDiv.style.borderLeftColor = "#2ecc71";
-        }
-
-        // --- Segmentar contribuyente ---
-        async function segmentar() {
-            const btn = document.getElementById('btnSegmentar');
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<div class="loader-ring"></div> Procesando...';
-            btn.disabled = true;
-
-            const datos = obtenerValoresActuales();
 
             if (datos.montoPagado > datos.montoImpuesto && datos.montoImpuesto > 0) {
                 resultadoDiv.innerHTML = '<div style="color:#c5221f;">⚠️ El monto pagado no puede superar al impuesto.</div>';
@@ -541,10 +602,6 @@
                 `;
                 resultadoDiv.style.borderLeftColor = colorTexto;
 
-                console.log('=== VALORES ENVIADOS ===');
-                console.log(JSON.stringify(datos, null, 2));
-                console.log(`=== CLUSTER OBTENIDO: ${cluster} (${nombresSemanticos[cluster] || 'desconocido'}) ===`);
-
                 dibujarGrafico(cluster);
             } catch (err) {
                 resultadoDiv.innerHTML = `<div style="color:#c5221f;">❌ Error: ${err.message}</div>`;
@@ -558,7 +615,6 @@
         // Inicialización
         cargarPuntosHistoricos();
         document.getElementById('btnSegmentar').addEventListener('click', segmentar);
-        document.getElementById('btnCopiar').addEventListener('click', copiarValores);
         document.getElementById('btnEjemploAlto').addEventListener('click', cargarEjemploAlto);
         document.getElementById('btnEjemploMedio').addEventListener('click', cargarEjemploMedio);
         document.getElementById('btnEjemploBajo').addEventListener('click', cargarEjemploBajo);
