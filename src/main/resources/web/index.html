@@ -144,13 +144,7 @@
             box-shadow: 0 12px 22px rgba(0,0,0,0.2);
             background: linear-gradient(95deg, #0f4624, #186e3a);
         }
-        .btn-secondary {
-            background: linear-gradient(95deg, #2c6e4f, #1f7a46);
-            width: auto;
-            padding: 0.7rem 1.2rem;
-            margin: 0 1rem;
-            font-size: 0.9rem;
-        }
+
         .button-group {
             display: flex;
             justify-content: center;
@@ -247,9 +241,6 @@
 
         <div class="button-group">
             <button id="btnSegmentar" class="btn-modern"><i class="fas fa-chart-line"></i> Identificar segmento</button>
-            <button id="btnEjemploAlto" class="btn-modern btn-secondary"><i class="fas fa-skull-crosswalk"></i> Ejemplo Alto Riesgo</button>
-            <button id="btnEjemploMedio" class="btn-modern btn-secondary"><i class="fas fa-chart-line"></i> Ejemplo Medio Riesgo</button>
-            <button id="btnEjemploBajo" class="btn-modern btn-secondary"><i class="fas fa-check-circle"></i> Ejemplo Bajo Riesgo</button>
         </div>
 
         <div id="resultado" class="result-card">✨ Complete los datos y presione el botón</div>
@@ -490,58 +481,6 @@
             }
         });
 
-        // --- Ejemplos con valores INVERTIDOS entre Alto y Medio Riesgo ---
-        // AHORA: "Ejemplo Alto Riesgo" cargará los valores que antes daban Recuperable (cluster 1)
-        function cargarEjemploAlto() {
-            document.getElementById('tipo').value = "0";
-            document.getElementById('frecuencia').value = "1";   // Con retraso (antes era 2)
-            document.getElementById('montoImpuesto').value = "3500";
-            document.getElementById('montoPagado').value = "1800";
-            document.getElementById('deudaAcumulada').value = "2200";
-            document.getElementById('aniosMoroso').value = "2";
-            document.getElementById('mesesRetraso').value = "4";
-            document.getElementById('numNotificaciones').value = "3";
-            document.getElementById('respondio').value = "0";
-            document.getElementById('fraccion').value = "1";
-            document.getElementById('ultimoPago').value = "2022";
-            resultadoDiv.innerHTML = "📋 Ejemplo de Alto Riesgo cargado. Presione 'Identificar segmento' para ver el resultado.";
-            resultadoDiv.style.borderLeftColor = "#e74c3c";
-        }
-
-        // "Ejemplo Medio Riesgo" cargará los valores que antes daban Moroso (cluster 0)
-        function cargarEjemploMedio() {
-            document.getElementById('tipo').value = "0";
-            document.getElementById('frecuencia').value = "2";   // Nunca paga
-            document.getElementById('montoImpuesto').value = "8000";
-            document.getElementById('montoPagado').value = "0";
-            document.getElementById('deudaAcumulada').value = "15000";
-            document.getElementById('aniosMoroso').value = "5";
-            document.getElementById('mesesRetraso').value = "12";
-            document.getElementById('numNotificaciones').value = "8";
-            document.getElementById('respondio').value = "0";
-            document.getElementById('fraccion').value = "0";
-            document.getElementById('ultimoPago').value = "2018";
-            resultadoDiv.innerHTML = "📋 Ejemplo de Medio Riesgo cargado. Presione 'Identificar segmento' para ver el resultado.";
-            resultadoDiv.style.borderLeftColor = "#f1c40f";
-        }
-
-        // Ejemplo Bajo Riesgo (sin cambios)
-        function cargarEjemploBajo() {
-            document.getElementById('tipo').value = "0";
-            document.getElementById('frecuencia').value = "0";
-            document.getElementById('montoImpuesto').value = "3500";
-            document.getElementById('montoPagado').value = "3500";
-            document.getElementById('deudaAcumulada').value = "0";
-            document.getElementById('aniosMoroso').value = "0";
-            document.getElementById('mesesRetraso').value = "0";
-            document.getElementById('numNotificaciones').value = "0";
-            document.getElementById('respondio').value = "1";
-            document.getElementById('fraccion').value = "0";
-            document.getElementById('ultimoPago').value = "2025";
-            resultadoDiv.innerHTML = "📋 Ejemplo de Bajo Riesgo cargado. Presione 'Identificar segmento' para ver el resultado.";
-            resultadoDiv.style.borderLeftColor = "#2ecc71";
-        }
-
         // --- Segmentar contribuyente ---
         async function segmentar() {
             const btn = document.getElementById('btnSegmentar');
@@ -615,9 +554,6 @@
         // Inicialización
         cargarPuntosHistoricos();
         document.getElementById('btnSegmentar').addEventListener('click', segmentar);
-        document.getElementById('btnEjemploAlto').addEventListener('click', cargarEjemploAlto);
-        document.getElementById('btnEjemploMedio').addEventListener('click', cargarEjemploMedio);
-        document.getElementById('btnEjemploBajo').addEventListener('click', cargarEjemploBajo);
     </script>
 </body>
 </html>
