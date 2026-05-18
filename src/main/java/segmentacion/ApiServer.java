@@ -16,32 +16,33 @@ public class ApiServer {
     private static Map<String, Object> puntosPorCluster;
     private static PcaParams pcaParams;
 
+    // ─── Estructura de pca_params.json ───────────────────────────────────────
     static class PcaParams {
-        double[] media;
-        double[][] componentes;
+        boolean usa_scaler;   // true si se usó StandardScaler antes del PCA
+        double[] scaler_mean; // media por columna del StandardScaler
+        double[] scaler_std;  // desv. estándar por columna del StandardScaler
+        double[] media;       // pca.mean_ (media en espacio escalado)
+        double[][] componentes; // pca.components_[:2]
     }
 
     public static void main(String[] args) throws Exception {
         segmentador = new SegmentadorWeka();
 
-        // Cargar cluster_info.json
-        try (Reader reader = new InputStreamReader(
+        try (Reader r = new InputStreamReader(
                 ApiServer.class.getResourceAsStream("/cluster_info.json"), StandardCharsets.UTF_8)) {
             Type type = new TypeToken<Map<String, Object>>(){}.getType();
-            clusterInfo = new Gson().fromJson(reader, type);
+            clusterInfo = new Gson().fromJson(r, type);
         }
 
-        // Cargar puntos_por_cluster.json
-        try (Reader reader = new InputStreamReader(
+        try (Reader r = new InputStreamReader(
                 ApiServer.class.getResourceAsStream("/puntos_por_cluster.json"), StandardCharsets.UTF_8)) {
             Type type = new TypeToken<Map<String, Object>>(){}.getType();
-            puntosPorCluster = new Gson().fromJson(reader, type);
+            puntosPorCluster = new Gson().fromJson(r, type);
         }
 
-        // Cargar parámetros PCA
-        try (Reader reader = new InputStreamReader(
+        try (Reader r = new InputStreamReader(
                 ApiServer.class.getResourceAsStream("/pca_params.json"), StandardCharsets.UTF_8)) {
-            pcaParams = new Gson().fromJson(reader, PcaParams.class);
+            pcaParams = new Gson().fromJson(r, PcaParams.class);
         }
 
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
@@ -64,7 +65,7 @@ public class ApiServer {
                 return gson.toJson(Map.of("error", "El monto pagado no puede superar al impuesto."));
             }
 
-            // Construir vector de 10 atributos (igual que en SegmentadorWeka)
+            // Vector de 10 atributos para K-Means (igual que en entrenamiento)
             double[] valores = new double[10];
             valores[0] = ((Number) entrada.get("tipoContribuyente")).doubleValue();
             valores[1] = ((Number) entrada.get("montoImpuesto")).doubleValue();
@@ -79,10 +80,8 @@ public class ApiServer {
 
             int cluster = segmentador.predecir(valores);
 
-            // Proyectar el punto usando PCA
+            // Proyectar con el pipeline completo (Scaler → PCA)
             double[] proyectado = proyectarPCA(valores);
-            double pcaX = proyectado[0];
-            double pcaY = proyectado[1];
 
             Map<String, Object> info = (Map<String, Object>) clusterInfo.get(String.valueOf(cluster));
             if (info == null) info = Map.of("nombre", "Segmento " + cluster);
@@ -90,8 +89,8 @@ public class ApiServer {
             Map<String, Object> respuesta = new HashMap<>();
             respuesta.put("cluster", cluster);
             respuesta.put("info", info);
-            respuesta.put("pcaX", pcaX);
-            respuesta.put("pcaY", pcaY);
+            respuesta.put("pcaX", proyectado[0]);
+            respuesta.put("pcaY", proyectado[1]);
             return gson.toJson(respuesta);
         });
 
@@ -101,20 +100,45 @@ public class ApiServer {
             res.body(new Gson().toJson(Map.of("error", e.getMessage())));
         });
 
-        System.out.println("Servidor de segmentación (Weka) iniciado en puerto " + port);
+        System.out.println("Servidor iniciado en puerto " + port);
     }
 
+    /**
+     * Aplica el mismo pipeline que Python:
+     *   1) StandardScaler (si usa_scaler=true): x_scaled = (x - scaler_mean) / scaler_std
+     *   2) Centrar con pca.mean_:               x_cent   = x_scaled - media
+     *   3) Proyectar con componentes PCA:        result   = componentes @ x_cent
+     */
     private static double[] proyectarPCA(double[] vectorOriginal) {
-        // Centrar el vector (restar la media)
-        double[] centrado = new double[vectorOriginal.length];
-        for (int i = 0; i < vectorOriginal.length; i++) {
-            centrado[i] = vectorOriginal[i] - pcaParams.media[i];
+        int n = vectorOriginal.length;
+        double[] entrada = new double[n];
+
+        // Paso 1: StandardScaler (solo si se usó en entrenamiento)
+        if (pcaParams.usa_scaler
+                && pcaParams.scaler_mean != null
+                && pcaParams.scaler_std  != null) {
+            for (int i = 0; i < n; i++) {
+                double std = pcaParams.scaler_std[i];
+                entrada[i] = (std > 1e-10)
+                        ? (vectorOriginal[i] - pcaParams.scaler_mean[i]) / std
+                        : 0.0;
+            }
+        } else {
+            // Sin scaler: usar valores crudos
+            System.arraycopy(vectorOriginal, 0, entrada, 0, n);
         }
-        // Proyectar en las dos primeras componentes
+
+        // Paso 2: Centrar con pca.mean_
+        double[] centrado = new double[n];
+        for (int i = 0; i < n; i++) {
+            centrado[i] = entrada[i] - pcaParams.media[i];
+        }
+
+        // Paso 3: Proyectar en las 2 primeras componentes
         double[] resultado = new double[2];
         for (int i = 0; i < 2; i++) {
             double suma = 0;
-            for (int j = 0; j < vectorOriginal.length; j++) {
+            for (int j = 0; j < n; j++) {
                 suma += pcaParams.componentes[i][j] * centrado[j];
             }
             resultado[i] = suma;
