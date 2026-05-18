@@ -9,25 +9,110 @@
     <script src="https://cdn.plot.ly/plotly-2.27.1.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: linear-gradient(135deg, #e0f0e0 0%, #c8e0c8 100%); font-family: 'Inter', sans-serif; padding: 2rem 1.5rem; }
-        .glass-card { max-width: 1400px; margin: 0 auto; background: rgba(255,255,255,0.96); backdrop-filter: blur(2px); border-radius: 2rem; box-shadow: 0 25px 45px -12px rgba(0,0,0,0.3); overflow: hidden; }
-        .header { background: linear-gradient(105deg, #0e4b2c 0%, #1a6e3a 100%); padding: 1.2rem 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; border-bottom: 3px solid #ffd966; }
+        body {
+            background: linear-gradient(135deg, #e0f0e0 0%, #c8e0c8 100%);
+            font-family: 'Inter', sans-serif;
+            padding: 2rem 1.5rem;
+        }
+        .glass-card {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            box-shadow: 0 25px 45px -12px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(105deg, #0e4b2c 0%, #1a6e3a 100%);
+            padding: 1.2rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            border-bottom: 3px solid #ffd966;
+        }
         .logo-area { display: flex; align-items: center; gap: 1rem; }
-        .logo-icon { background: #f5f5dc; border-radius: 50%; width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #0e4b2c; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .logo-icon {
+            background: #f5f5dc; border-radius: 50%; width: 55px; height: 55px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; color: #0e4b2c;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
         .title-text h1 { color: white; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.3px; }
         .title-text p { color: #d4ecd4; font-size: 0.9rem; font-weight: 500; }
-        .form-grid { padding: 1.5rem 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem 1.5rem; }
+        .form-grid {
+            padding: 1.5rem 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem 1.5rem;
+        }
         .input-group { display: flex; flex-direction: column; gap: 0.3rem; }
-        .input-group label { font-weight: 700; color: #1f3b2c; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 0.5rem; }
-        .input-group input, .input-group select { padding: 0.75rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 1rem; font-size: 0.95rem; background: #fefefe; transition: all 0.2s; }
-        .input-group input:focus, .input-group select:focus { border-color: #2d6a4f; outline: none; box-shadow: 0 0 0 3px rgba(45,106,79,0.2); }
-        .btn-modern { background: linear-gradient(95deg, #14532d, #1f7a46); border: none; color: white; font-weight: 800; padding: 0.9rem; border-radius: 2rem; cursor: pointer; font-size: 1rem; margin: 0.5rem 2rem 1rem; width: calc(100% - 4rem); transition: 0.3s; box-shadow: 0 6px 14px rgba(0,0,0,0.15); }
-        .btn-modern:hover { transform: translateY(-2px); background: linear-gradient(95deg, #0f4624, #186e3a); box-shadow: 0 12px 22px rgba(0,0,0,0.2); }
-        .result-card { margin: 0 2rem 1rem; padding: 1.5rem; border-radius: 1.5rem; background: #f9faf9; border-left: 8px solid #2ecc71; text-align: center; transition: transform 0.2s; }
+        .input-group label {
+            font-weight: 700; color: #1f3b2c; font-size: 0.75rem;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .input-group input, .input-group select {
+            padding: 0.75rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 1rem;
+            font-size: 0.95rem; background: #fefefe;
+            transition: all 0.2s;
+        }
+        .input-group input:focus, .input-group select:focus {
+            border-color: #2d6a4f; outline: none; box-shadow: 0 0 0 3px rgba(45,106,79,0.2);
+        }
+        .btn-modern {
+            background: linear-gradient(95deg, #14532d, #1f7a46);
+            border: none; color: white; font-weight: 800; padding: 0.9rem;
+            border-radius: 2rem; cursor: pointer; font-size: 1rem;
+            margin: 0.5rem 2rem 1rem; width: calc(100% - 4rem);
+            transition: 0.3s;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+        }
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(95deg, #0f4624, #186e3a);
+            box-shadow: 0 12px 22px rgba(0,0,0,0.2);
+        }
+        .btn-secondary {
+            background: linear-gradient(95deg, #2c6e4f, #1f7a46);
+            width: auto;
+            padding: 0.7rem 1.2rem;
+            margin: 0 1rem;
+            font-size: 0.9rem;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 0.5rem 2rem 0;
+        }
+        .result-card {
+            margin: 0 2rem 1rem; padding: 1.5rem; border-radius: 1.5rem;
+            background: #f9faf9; border-left: 8px solid #2ecc71;
+            text-align: center;
+            transition: transform 0.2s;
+        }
         .result-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
         .graph-container { margin: 1rem 2rem 2rem; padding: 1rem; background: #0d1f14; border-radius: 1.5rem; }
-        .footer { background: #eaf4ea; padding: 1rem; text-align: center; font-size: 0.8rem; color: #2c5e3c; border-top: 1px solid #cde0cd; }
-        @media (max-width: 720px) { body { padding: 1rem; } .btn-modern { width: calc(100% - 2rem); margin: 0.5rem 1rem; } .form-grid { padding: 1rem; } .graph-container { margin: 1rem; } }
+        .footer {
+            background: #eaf4ea; padding: 1rem; text-align: center;
+            font-size: 0.8rem; color: #2c5e3c; border-top: 1px solid #cde0cd;
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 720px) {
+            body { padding: 1rem; }
+            .btn-modern { width: calc(100% - 2rem); margin: 0.5rem 1rem; }
+            .form-grid { padding: 1rem; }
+            .graph-container { margin: 1rem; }
+            .button-group { margin: 0.5rem 1rem; }
+        }
     </style>
 </head>
 <body>
@@ -37,7 +122,7 @@
             <div class="logo-icon"><i class="fas fa-chart-pie"></i></div>
             <div class="title-text">
                 <h1>Segmentación de Contribuyentes</h1>
-                <p>Municipalidad Distrital de Pangoa · K-Means + PCA · Elipses de confianza</p>
+                <p>Municipalidad Distrital de Pangoa · K-Means + PCA · Análisis inteligente</p>
             </div>
         </div>
         <div style="color:#e8f0e8; font-weight:600;"><i class="fas fa-brain"></i> Clustering con Weka</div>
@@ -57,24 +142,27 @@
         <div class="input-group"><label><i class="fas fa-calendar-week"></i> Año último pago</label><input type="number" id="ultimoPago" value="2024"></div>
     </form>
 
-    <button id="btnSegmentar" class="btn-modern"><i class="fas fa-chart-line"></i> Identificar segmento</button>
+    <div class="button-group">
+        <button id="btnSegmentar" class="btn-modern"><i class="fas fa-chart-line"></i> Identificar segmento</button>
+        <button id="btnEjemplo" class="btn-modern btn-secondary"><i class="fas fa-chalkboard-user"></i> Cargar ejemplo (Riesgo Medio)</button>
+    </div>
+
     <div id="resultado" class="result-card">✨ Complete los datos y presione el botón</div>
     <div id="grafico" class="graph-container"></div>
     <div class="footer">
         <span><i class="fas fa-microchip"></i> Modelo Weka · K-Means</span>
-        <span> &nbsp;·&nbsp; </span>
         <span><i class="fas fa-chart-pie"></i> Segmentación en 4 grupos</span>
-        <span> &nbsp;·&nbsp; </span>
         <span><i class="fas fa-shield-alt"></i> Datos oficiales · Pangoa</span>
     </div>
 </div>
 
 <script>
-    let puntosData = null;         // datos originales del servidor
-    let puntosLimpios = null;      // datos sin outliers para el gráfico
+    let puntosData = null;
     let graficoDiv = document.getElementById('grafico');
     let resultadoDiv = document.getElementById('resultado');
+    let fixedRanges = null;
 
+    // Colores y nombres
     const COLORES = ['#2ecc71', '#f1c40f', '#e74c3c', '#3498db'];
     const NOMBRES = [
         'Segmento 0: Morosos',
@@ -83,185 +171,76 @@
         'Segmento 3: Recuperables alto monto'
     ];
 
-    // ── Filtrar outliers por z-score (umbral = 3 σ) ──────────────────────────
-    function filtrarOutliers(pts, umbral = 3.0) {
-        if (!pts.x || pts.x.length < 5) return pts;
-        const n = pts.x.length;
-
-        const meanX = pts.x.reduce((a, b) => a + b, 0) / n;
-        const meanY = pts.y.reduce((a, b) => a + b, 0) / n;
-        const stdX  = Math.sqrt(pts.x.reduce((s, v) => s + (v - meanX) ** 2, 0) / n) || 1;
-        const stdY  = Math.sqrt(pts.y.reduce((s, v) => s + (v - meanY) ** 2, 0) / n) || 1;
-
-        const xFilt = [], yFilt = [];
-        for (let i = 0; i < n; i++) {
-            const zx = Math.abs((pts.x[i] - meanX) / stdX);
-            const zy = Math.abs((pts.y[i] - meanY) / stdY);
-            if (zx <= umbral && zy <= umbral) {
-                xFilt.push(pts.x[i]);
-                yFilt.push(pts.y[i]);
-            }
+    // Calcular círculo que contenga todos los puntos (radio = distancia máxima al centroide + margen)
+    function calcularCirculo(puntos) {
+        if (!puntos.x || puntos.x.length === 0) return null;
+        let sumX = 0, sumY = 0;
+        for (let i = 0; i < puntos.x.length; i++) {
+            sumX += puntos.x[i];
+            sumY += puntos.y[i];
         }
-        return { x: xFilt, y: yFilt };
+        const cx = sumX / puntos.x.length;
+        const cy = sumY / puntos.y.length;
+        let maxDist = 0;
+        for (let i = 0; i < puntos.x.length; i++) {
+            const dx = puntos.x[i] - cx;
+            const dy = puntos.y[i] - cy;
+            const dist = Math.hypot(dx, dy);
+            if (dist > maxDist) maxDist = dist;
+        }
+        // Margen del 20% para que el círculo sea más grande y se vea como un grupo
+        const radio = maxDist * 1.2;
+        return { cx, cy, r: Math.max(radio, 0.5) };
     }
 
-    // ── Elipse de confianza 95 % ─────────────────────────────────────────────
-    function calcularElipse(pts) {
-        if (!pts.x || pts.x.length < 5) return null;
-        const n = pts.x.length;
-        const cx = pts.x.reduce((a, b) => a + b, 0) / n;
-        const cy = pts.y.reduce((a, b) => a + b, 0) / n;
-        let covXX = 0, covYY = 0, covXY = 0;
-        for (let i = 0; i < n; i++) {
-            const dx = pts.x[i] - cx, dy = pts.y[i] - cy;
-            covXX += dx * dx; covYY += dy * dy; covXY += dx * dy;
-        }
-        covXX /= (n - 1); covYY /= (n - 1); covXY /= (n - 1);
-
-        const chi2 = 5.991;
-        const disc = Math.sqrt(Math.pow(covXX - covYY, 2) + 4 * covXY * covXY);
-        const w = Math.sqrt(Math.max(0, chi2 * (covXX + covYY + disc) / 2));
-        const h = Math.sqrt(Math.max(0, chi2 * (covXX + covYY - disc) / 2));
-        return { cx, cy, w: Math.max(w, 0.01), h: Math.max(h, 0.01) };
-    }
-
-    // ── Calcular rangos incluyendo elipses y la estrella del usuario ─────────
-    function calcularRanges(datos, puntoExtra) {
-        let allX = [], allY = [];
-        for (const pts of Object.values(datos)) {
-            if (pts.x) { allX.push(...pts.x); allY.push(...pts.y); }
-            const e = calcularElipse(pts);
-            if (e) { allX.push(e.cx - e.w, e.cx + e.w); allY.push(e.cy - e.h, e.cy + e.h); }
-        }
-        // La estrella se incluye SOLO si está razonablemente cerca (< 5× el rango actual)
-        if (puntoExtra) {
-            const xMin0 = Math.min(...allX), xMax0 = Math.max(...allX);
-            const yMin0 = Math.min(...allY), yMax0 = Math.max(...allY);
-            const xRng = (xMax0 - xMin0) || 1, yRng = (yMax0 - yMin0) || 1;
-            const factorMax = 3;
-            if (Math.abs(puntoExtra.x - (xMin0 + xMax0) / 2) < factorMax * xRng &&
-                Math.abs(puntoExtra.y - (yMin0 + yMax0) / 2) < factorMax * yRng) {
-                allX.push(puntoExtra.x);
-                allY.push(puntoExtra.y);
-            }
-        }
-        const xMin = Math.min(...allX), xMax = Math.max(...allX);
-        const yMin = Math.min(...allY), yMax = Math.max(...allY);
-        const mx = (xMax - xMin) * 0.18 || 1;
-        const my = (yMax - yMin) * 0.18 || 1;
-        return { x: [xMin - mx, xMax + mx], y: [yMin - my, yMax + my] };
-    }
-
-    // ── Dibujar gráfico ───────────────────────────────────────────────────────
-    function dibujarGrafico(clusterResaltado, puntoUsuario) {
-        if (!puntosLimpios) return;
-        const ranges = calcularRanges(puntosLimpios, puntoUsuario);
-        let traces = [], shapes = [];
-
-        // 1) Elipses
-        for (const [cluster, pts] of Object.entries(puntosLimpios)) {
-            const idx = parseInt(cluster);
-            const e = calcularElipse(pts);
-            if (!e) continue;
-            const col = COLORES[idx % COLORES.length];
-            const [r, g, b] = [parseInt(col.slice(1,3),16), parseInt(col.slice(3,5),16), parseInt(col.slice(5,7),16)];
-            const resaltado = clusterResaltado !== null && idx === clusterResaltado;
-            shapes.push({
-                type: 'ellipse', xref: 'x', yref: 'y',
-                x0: e.cx - e.w, x1: e.cx + e.w,
-                y0: e.cy - e.h, y1: e.cy + e.h,
-                line: { color: col, width: resaltado ? 4 : 2 },
-                fillcolor: `rgba(${r},${g},${b},${resaltado ? 0.30 : 0.18})`,
-                layer: 'below'
-            });
-            // Etiqueta en centroide
-            traces.push({
-                x: [e.cx], y: [e.cy],
-                mode: 'text',
-                text: [`<b>${NOMBRES[idx].split(':')[0]}</b>`],
-                textfont: { size: 10, color: col },
-                showlegend: false, hoverinfo: 'skip', type: 'scatter'
-            });
-        }
-
-        // 2) Nubes de puntos
-        for (const [cluster, pts] of Object.entries(puntosLimpios)) {
-            const idx = parseInt(cluster);
-            if (!pts.x || pts.x.length === 0) continue;
-            const col = COLORES[idx % COLORES.length];
-            const resaltado = clusterResaltado !== null && idx === clusterResaltado;
-            traces.push({
-                x: pts.x, y: pts.y,
-                mode: 'markers',
-                name: NOMBRES[idx],
-                marker: { color: col, size: resaltado ? 9 : 6, opacity: resaltado ? 0.95 : 0.60, line: { width: 0.4, color: 'rgba(255,255,255,0.3)' } },
-                type: 'scatter',
-                hoverinfo: 'text',
-                text: pts.x.map(() => NOMBRES[idx]),
-                legendgroup: `c${idx}`
-            });
-        }
-
-        // 3) Estrella del usuario
-        if (puntoUsuario) {
-            // Verificar si la estrella está dentro del rango visible
-            const dentroX = puntoUsuario.x >= ranges.x[0] && puntoUsuario.x <= ranges.x[1];
-            const dentroY = puntoUsuario.y >= ranges.y[0] && puntoUsuario.y <= ranges.y[1];
-            const visible = dentroX && dentroY;
-            traces.push({
-                x: [visible ? puntoUsuario.x : null],
-                y: [visible ? puntoUsuario.y : null],
-                mode: 'markers+text',
-                name: '⭐ Contribuyente actual',
-                text: ['  ◀ Tú'],
-                textposition: 'middle right',
-                textfont: { size: 13, color: '#ffd966' },
-                marker: { symbol: 'star', size: 28, color: '#ffd966', line: { width: 2.5, color: '#fff' } },
-                type: 'scatter',
-                hovertemplate: '⭐ Tu contribuyente<br>PC1: %{x:.3f}<br>PC2: %{y:.3f}<extra></extra>',
-                legendgroup: 'usuario'
-            });
-            if (!visible) {
-                console.warn('⚠️ La estrella está fuera del rango visible. Probable error en pca_params.json.',
-                    `pcaX=${puntoUsuario.x.toFixed(2)}, pcaY=${puntoUsuario.y.toFixed(2)}`,
-                    `rangoX=[${ranges.x.map(v=>v.toFixed(1)).join(',')}]`,
-                    `rangoY=[${ranges.y.map(v=>v.toFixed(1)).join(',')}]`
-                );
-            }
-        }
-
-        Plotly.newPlot(graficoDiv, traces, {
-            title: { text: 'Mapa de perfiles de contribuyentes (PCA) — Elipses de confianza 95%', font: { color: '#a8dfc0', size: 14 } },
-            plot_bgcolor: '#0d1f14', paper_bgcolor: '#0d1f14',
-            font: { color: '#a8dfc0' },
-            xaxis: { title: 'Componente Principal 1', showgrid: true, gridcolor: 'rgba(255,255,255,0.07)', zeroline: false, range: ranges.x },
-            yaxis: { title: 'Componente Principal 2', showgrid: true, gridcolor: 'rgba(255,255,255,0.07)', zeroline: false, range: ranges.y },
-            height: 560,
-            margin: { l: 65, r: 170, t: 55, b: 65 },
-            hovermode: 'closest',
-            legend: { bgcolor: 'rgba(0,0,0,0.65)', bordercolor: 'rgba(255,255,255,0.2)', borderwidth: 1, font: { size: 11 }, x: 1.01, y: 1, xanchor: 'left', yanchor: 'top' },
-            shapes: shapes
-        }, { responsive: true });
-    }
-
-    // ── Cargar puntos y filtrar outliers ──────────────────────────────────────
+    // Cargar puntos desde el backend
     async function cargarPuntos() {
         try {
             const resp = await fetch('/puntos');
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             puntosData = await resp.json();
-
-            // Filtrar outliers para que el gráfico se vea bien
-            puntosLimpios = {};
-            for (const [k, pts] of Object.entries(puntosData)) {
-                puntosLimpios[k] = filtrarOutliers(pts, 3.0);
+            console.log('Puntos cargados:', Object.keys(puntosData).length, 'clusters');
+            
+            let algunCluster = false;
+            for (const c in puntosData) {
+                if (puntosData[c].x && puntosData[c].x.length > 0) {
+                    algunCluster = true;
+                    break;
+                }
             }
-
-            const tieneData = Object.values(puntosLimpios).some(c => c.x && c.x.length > 0);
-            if (!tieneData) {
-                resultadoDiv.innerHTML = '<div style="color:#e74c3c;">⚠️ No hay datos en puntos_por_cluster.json</div>';
+            if (!algunCluster) {
+                resultadoDiv.innerHTML = '<div style="color:#e74c3c;">⚠️ No hay datos de puntos. Verifica puntos_por_cluster.json</div>';
                 return;
             }
+            
+            // Calcular rangos fijos incluyendo todos los puntos y los círculos
+            let allX = [], allY = [];
+            for (const pts of Object.values(puntosData)) {
+                if (pts.x) {
+                    allX.push(...pts.x);
+                    allY.push(...pts.y);
+                }
+                const circulo = calcularCirculo(pts);
+                if (circulo) {
+                    allX.push(circulo.cx - circulo.r, circulo.cx + circulo.r);
+                    allY.push(circulo.cy - circulo.r, circulo.cy + circulo.r);
+                }
+            }
+            if (allX.length === 0) allX = [0,1];
+            if (allY.length === 0) allY = [0,1];
+            const xMin = Math.min(...allX);
+            const xMax = Math.max(...allX);
+            const yMin = Math.min(...allY);
+            const yMax = Math.max(...allY);
+            const xRange = xMax - xMin;
+            const yRange = yMax - yMin;
+            const xMargin = xRange * 0.15;
+            const yMargin = yRange * 0.15;
+            fixedRanges = {
+                x: [xMin - xMargin, xMax + xMargin],
+                y: [yMin - yMargin, yMax + yMargin]
+            };
+            // Dibujar gráfico inicial sin usuario
             dibujarGrafico(null, null);
         } catch (err) {
             console.error(err);
@@ -269,33 +248,190 @@
         }
     }
 
-    // ── Segmentar contribuyente ───────────────────────────────────────────────
+    // Dibujar gráfico con círculos, puntos y estrella
+    function dibujarGrafico(clusterResaltado, puntoUsuario) {
+        if (!puntosData) return;
+        
+        let shapes = [];
+        let traces = [];
+        
+        // 1. Círculos para cada cluster
+        for (const [cluster, pts] of Object.entries(puntosData)) {
+            const idx = parseInt(cluster);
+            if (!pts.x || pts.x.length === 0) continue;
+            const circulo = calcularCirculo(pts);
+            if (!circulo) continue;
+            const color = COLORES[idx % COLORES.length];
+            const isHighlighted = (clusterResaltado !== null && idx === clusterResaltado);
+            const lineWidth = isHighlighted ? 3.5 : 2;
+            const fillOpacity = isHighlighted ? 0.25 : 0.15;
+            
+            shapes.push({
+                type: 'circle',
+                xref: 'x', yref: 'y',
+                x0: circulo.cx - circulo.r,
+                y0: circulo.cy - circulo.r,
+                x1: circulo.cx + circulo.r,
+                y1: circulo.cy + circulo.r,
+                line: { color: color, width: lineWidth },
+                fillcolor: `rgba(${parseInt(color.slice(1,3),16)}, ${parseInt(color.slice(3,5),16)}, ${parseInt(color.slice(5,7),16)}, ${fillOpacity})`,
+                layer: 'below'
+            });
+            
+            // Etiqueta del centroide (nombre del cluster)
+            traces.push({
+                x: [circulo.cx],
+                y: [circulo.cy],
+                mode: 'text',
+                text: [`<b>${NOMBRES[idx].split(':')[0]}</b>`],
+                textfont: { size: 11, color: color },
+                showlegend: false,
+                hoverinfo: 'skip',
+                type: 'scatter'
+            });
+        }
+        
+        // 2. Nubes de puntos
+        for (const [cluster, pts] of Object.entries(puntosData)) {
+            const idx = parseInt(cluster);
+            if (!pts.x || pts.x.length === 0) continue;
+            const color = COLORES[idx % COLORES.length];
+            const isHighlighted = (clusterResaltado !== null && idx === clusterResaltado);
+            const markerSize = isHighlighted ? 8 : 5;
+            const markerOpacity = isHighlighted ? 0.9 : 0.6;
+            traces.push({
+                x: pts.x,
+                y: pts.y,
+                mode: 'markers',
+                name: NOMBRES[idx],
+                marker: { color: color, size: markerSize, opacity: markerOpacity, line: { width: 0.3, color: 'white' } },
+                type: 'scatter',
+                hoverinfo: 'text',
+                text: pts.x.map(() => NOMBRES[idx]),
+                legendgroup: `cluster${idx}`
+            });
+        }
+        
+        // 3. Estrella del usuario
+        if (puntoUsuario && typeof puntoUsuario.x === 'number' && typeof puntoUsuario.y === 'number') {
+            // Verificar si está dentro del rango visible
+            const inRange = fixedRanges && 
+                puntoUsuario.x >= fixedRanges.x[0] && puntoUsuario.x <= fixedRanges.x[1] &&
+                puntoUsuario.y >= fixedRanges.y[0] && puntoUsuario.y <= fixedRanges.y[1];
+            
+            traces.push({
+                x: [puntoUsuario.x],
+                y: [puntoUsuario.y],
+                mode: 'markers+text',
+                name: '⭐ Contribuyente actual',
+                text: ['  Tú'],
+                textposition: 'middle right',
+                textfont: { size: 12, color: '#ffd966', weight: 'bold' },
+                marker: { symbol: 'star', size: 22, color: '#ffd966', line: { width: 2, color: '#fff' } },
+                type: 'scatter',
+                hoverinfo: 'text',
+                hovertemplate: '⭐ Tu ubicación<br>PC1: %{x:.2f}<br>PC2: %{y:.2f}<extra></extra>',
+                legendgroup: 'usuario'
+            });
+            
+            if (!inRange) {
+                console.warn('⚠️ La estrella está fuera del rango visible. Coordenadas:', puntoUsuario);
+            }
+        }
+        
+        const layout = {
+            title: {
+                text: 'Mapa de perfiles de contribuyentes (PCA) - Grupos circulares',
+                font: { size: 16, color: '#a8dfc0', weight: 'bold' },
+                x: 0.5,
+                xanchor: 'center'
+            },
+            plot_bgcolor: '#0d1f14',
+            paper_bgcolor: '#0d1f14',
+            font: { color: '#a8dfc0' },
+            xaxis: {
+                title: 'Componente Principal 1',
+                showgrid: true,
+                gridcolor: 'rgba(255,255,255,0.08)',
+                zeroline: false,
+                showticklabels: true,
+                tickfont: { size: 10 },
+                range: fixedRanges ? fixedRanges.x : undefined
+            },
+            yaxis: {
+                title: 'Componente Principal 2',
+                showgrid: true,
+                gridcolor: 'rgba(255,255,255,0.08)',
+                zeroline: false,
+                showticklabels: true,
+                tickfont: { size: 10 },
+                range: fixedRanges ? fixedRanges.y : undefined,
+                scaleanchor: 'x',
+                scaleratio: 1
+            },
+            height: 580,
+            margin: { l: 70, r: 80, t: 70, b: 70 },
+            hovermode: 'closest',
+            legend: {
+                bgcolor: 'rgba(0,0,0,0.65)',
+                bordercolor: 'rgba(255,255,255,0.2)',
+                borderwidth: 1,
+                font: { size: 11 },
+                x: 1.02,
+                y: 1,
+                xanchor: 'left',
+                yanchor: 'top'
+            },
+            shapes: shapes
+        };
+        Plotly.newPlot(graficoDiv, traces, layout, { responsive: true });
+    }
+    
+    // Función para cargar un ejemplo (caso típico de Riesgo Medio)
+    function cargarEjemplo() {
+        document.getElementById('tipo').value = "0";
+        document.getElementById('frecuencia').value = "1";
+        document.getElementById('montoImpuesto').value = "3500";
+        document.getElementById('montoPagado').value = "1800";
+        document.getElementById('deudaAcumulada').value = "2200";
+        document.getElementById('aniosMoroso').value = "2";
+        document.getElementById('mesesRetraso').value = "4";
+        document.getElementById('numNotificaciones').value = "3";
+        document.getElementById('respondio').value = "false"; // No
+        document.getElementById('fraccion').value = "true";   // Sí
+        document.getElementById('ultimoPago').value = "2022";
+        resultadoDiv.innerHTML = "📋 Ejemplo cargado. Ahora presione 'Identificar segmento' para ver el resultado.";
+        resultadoDiv.style.borderLeftColor = "#f1c40f";
+    }
+    
+    // Segmentar contribuyente
     async function segmentar() {
         const btn = document.getElementById('btnSegmentar');
-        const orig = btn.innerHTML;
+        const originalHtml = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Procesando...';
         btn.disabled = true;
-
+        
         const datos = {
-            tipoContribuyente:     parseInt(document.getElementById('tipo').value),
-            frecuenciaPago:        parseInt(document.getElementById('frecuencia').value),
-            montoImpuesto:         parseFloat(document.getElementById('montoImpuesto').value),
-            montoPagado:           parseFloat(document.getElementById('montoPagado').value),
-            deudaAcumulada:        parseFloat(document.getElementById('deudaAcumulada').value),
-            aniosMoroso:           parseInt(document.getElementById('aniosMoroso').value),
-            mesesRetrasoPromedio:  parseFloat(document.getElementById('mesesRetraso').value),
-            numNotificaciones:     parseInt(document.getElementById('numNotificaciones').value),
+            tipoContribuyente: parseInt(document.getElementById('tipo').value),
+            frecuenciaPago: parseInt(document.getElementById('frecuencia').value),
+            montoImpuesto: parseFloat(document.getElementById('montoImpuesto').value),
+            montoPagado: parseFloat(document.getElementById('montoPagado').value),
+            deudaAcumulada: parseFloat(document.getElementById('deudaAcumulada').value),
+            aniosMoroso: parseInt(document.getElementById('aniosMoroso').value),
+            mesesRetrasoPromedio: parseFloat(document.getElementById('mesesRetraso').value),
+            numNotificaciones: parseInt(document.getElementById('numNotificaciones').value),
             respondioNotificacion: parseInt(document.getElementById('respondio').value),
-            fraccionamiento:       parseInt(document.getElementById('fraccion').value),
-            ultimoPago:            parseInt(document.getElementById('ultimoPago').value)
+            fraccionamiento: parseInt(document.getElementById('fraccion').value),
+            ultimoPago: parseInt(document.getElementById('ultimoPago').value)
         };
-
+        
         if (datos.montoPagado > datos.montoImpuesto && datos.montoImpuesto > 0) {
             resultadoDiv.innerHTML = '<div style="color:#c5221f;">⚠️ El monto pagado no puede superar al impuesto.</div>';
-            btn.innerHTML = orig; btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
             return;
         }
-
+        
         try {
             const response = await fetch('/segmentar', {
                 method: 'POST',
@@ -305,44 +441,46 @@
             if (!response.ok) throw new Error('Error en el servidor');
             const res = await response.json();
             if (res.error) throw new Error(res.error);
-
-            const info    = res.info || {};
-            const nombre  = info.nombre       || `Segmento ${res.cluster}`;
-            const desc    = info.descripcion  || '';
-            const accion  = info.accion       || 'Revisar historial.';
-            const carac   = info.caracteristicas || [];
-            const caracHtml = carac.length
-                ? '<ul style="text-align:left;display:inline-block;margin:12px 0;">'
-                  + carac.map(c => `<li style="margin:6px 0;">${c}</li>`).join('') + '</ul>'
-                : '';
-
+            
+            const info = res.info || {};
+            const nombre = info.nombre || `Segmento ${res.cluster}`;
+            const desc = info.descripcion || '';
+            const accion = info.accion || 'Revisar historial.';
+            const caracteristicas = info.caracteristicas || [];
+            let caracHtml = '';
+            if (caracteristicas.length) {
+                caracHtml = '<ul style="text-align:left;display:inline-block;margin:12px 0;">' +
+                    caracteristicas.map(c => `<li style="margin:6px 0;">${c}</li>`).join('') + '</ul>';
+            }
             resultadoDiv.innerHTML = `
-                <h2 style="color:#1f7a46;margin-bottom:8px;">${nombre}</h2>
+                <h2 style="color:#1f7a46; margin-bottom:8px;">${nombre}</h2>
                 <p style="margin-bottom:8px;">${desc}</p>
                 ${caracHtml}
                 <p><strong>⚡ Acción recomendada:</strong> ${accion}</p>
-                <p style="font-size:0.8rem;margin-top:12px;">Cluster #${res.cluster}</p>
+                <p style="font-size:0.8rem; margin-top:12px;">Cluster #${res.cluster}</p>
             `;
-
-            const puntoUsuario = (typeof res.pcaX === 'number' && typeof res.pcaY === 'number')
-                ? { x: res.pcaX, y: res.pcaY } : null;
-
-            dibujarGrafico(res.cluster, puntoUsuario);
-
-            if (!puntoUsuario) {
-                console.warn('⚠️ Backend no devolvió pcaX/pcaY. Verifica pca_params.json.');
+            
+            // Mostrar estrella si el backend devuelve coordenadas
+            if (typeof res.pcaX === 'number' && typeof res.pcaY === 'number') {
+                dibujarGrafico(res.cluster, { x: res.pcaX, y: res.pcaY });
+                console.log(`⭐ Estrella colocada en (${res.pcaX}, ${res.pcaY}) - Cluster ${res.cluster}`);
+            } else {
+                console.warn('⚠️ El backend no devolvió pcaX/pcaY. La estrella no se mostrará.');
+                dibujarGrafico(res.cluster, null);
             }
         } catch (err) {
             resultadoDiv.innerHTML = `<div style="color:#c5221f;">❌ Error: ${err.message}</div>`;
             console.error(err);
         } finally {
-            btn.innerHTML = orig;
+            btn.innerHTML = originalHtml;
             btn.disabled = false;
         }
     }
-
+    
+    // Inicializar
     cargarPuntos();
     document.getElementById('btnSegmentar').addEventListener('click', segmentar);
+    document.getElementById('btnEjemplo').addEventListener('click', cargarEjemplo);
 </script>
 </body>
 </html>
